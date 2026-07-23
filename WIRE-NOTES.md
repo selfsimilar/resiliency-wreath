@@ -88,3 +88,27 @@ Decided against protobuf / XML / CBOR for all signed wire documents:
 - **Registry reload semantics**: mtime-triggered, verify-then-swap,
   registry version anti-rollback; any failure keeps the previous
   registry in force (a broken out-of-band sync must not kill agents).
+
+## M4 — kinks the simulation surfaced (2026-07-23)
+
+- **Origin endpoints are additive, and the spec should say so.** The
+  first client-walk test failed because the fake origin served ONLY the
+  two well-known paths and 404'd `/`. Clarified model: a member origin
+  is its existing website PLUS two static paths. That is the entire
+  server-side onboarding footprint, worth stating verbatim in the RFC.
+- **"Highest valid version across all sources" defeats replay even for
+  cold caches.** A newcomer with no local anti-rollback state polls
+  every source and takes the max valid version, so a replay peer
+  serving genuine-but-old envelopes can never win — it can only tie
+  with honest sources it fails to outbid. No first-seen-wins hazard
+  exists in the pull rule; the RFC should keep highest-wins mandatory
+  (a "first responder wins" optimization would reintroduce it).
+- **Health reports are observer-local truth by design.** During a
+  partition the two sides publish contradictory matrices and both are
+  correct. The spec must define a health entry as "what this agent
+  observed", never "ring consensus" — aggregation is a consumer
+  concern (the future dashboard), not a protocol concern.
+- **Forgery containment confirmed end-to-end**: a complete forged
+  bundle (manifest + matching blobs) from a registry member is refused
+  by every agent at manifest-verify time and surfaces as `invalid` in
+  peers' health matrices; the blobs are never fetched.
