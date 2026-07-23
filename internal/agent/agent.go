@@ -38,6 +38,11 @@ type Config struct {
 	// injects partition-aware transports here).
 	Client *http.Client
 
+	// TLS, if set, wraps the listener (e.g. certmagic in ring-agent).
+	// Kept behind an interface so core packages stay stdlib-only and
+	// the sim never touches ACME.
+	TLS TLSProvider
+
 	PollInterval  time.Duration
 	ProbeInterval time.Duration
 	Staleness     time.Duration
@@ -127,6 +132,14 @@ func (a *Agent) Run(ctx context.Context) error {
 		if err != nil {
 			return err
 		}
+	}
+	if a.cfg.TLS != nil {
+		var err error
+		ln, err = a.cfg.TLS.Listener(ln)
+		if err != nil {
+			return fmt.Errorf("agent: enable TLS: %w", err)
+		}
+		a.log.Info("agent: TLS enabled")
 	}
 	a.ln = ln
 	srv := &http.Server{Handler: a.handler}

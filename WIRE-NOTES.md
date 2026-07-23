@@ -112,3 +112,33 @@ Decided against protobuf / XML / CBOR for all signed wire documents:
   bundle (manifest + matching blobs) from a registry member is refused
   by every agent at manifest-verify time and surfaces as `invalid` in
   peers' health matrices; the blobs are never fetched.
+
+## M5 — hardening (2026-07-23)
+
+- **TLS is a deployment concern, not a wire concern.** Nothing in the
+  formats changes when TLS is on; the agent takes a TLSProvider
+  interface, and the certmagic/ACME implementation lives in
+  cmd/ring-agent only. certmagic is the repository's sole third-party
+  dependency and internal packages remain stdlib-only — keep it that
+  way for auditability.
+- **Cert custody (DESIGN §5) status:** the current provider covers the
+  agent's OWN hostnames (TLS-ALPN-01 on its listener; HTTP-01 needs
+  port 80). Serving *another member's* `fallback_host` over TLS
+  requires the delegated DNS-01 flow (`_acme-challenge` CNAME) and is
+  parked with the real-DNS milestone. Until then, cross-member vhost
+  fallback is HTTP or fronted by the member's own proxy.
+- **Agent config file** (JSON, flags override, unknown fields rejected
+  loudly) is a local convention, not protocol. `ring-agent
+  -example-config` prints the template.
+- Graceful shutdown and structured logs (slog text/json) were in place
+  since M2; M5 added the log-level/format switches.
+
+## Open questions carried forward (for the RFC draft)
+
+- Signed health gossip (v0 reports are unsigned observability).
+- Registry rotation ceremony & threshold signing for the root key.
+- Numeric defaults: poll 30s / probe 60s / staleness 5m are running
+  defaults, not yet load-tested at N=100 members (probe traffic is
+  O(N²) per cycle ring-wide; fine at civic scale, revisit if not).
+- Notify authentication (currently unauthenticated hint; abuse = free
+  extra polls, rate-limit if it matters).
