@@ -36,6 +36,29 @@ each section. Dates are UTC.
   Bundle file paths are clean, relative, slash-separated, no `..`, no `\`,
   no control characters.
 
+## Format rationale — why JSON (2026-07-23)
+
+Decided against protobuf / XML / CBOR for all signed wire documents:
+
+- **Canonical form for signing is the deciding constraint.** JSON has
+  RFC 8785 (JCS), small enough to implement auditable-y in stdlib Go.
+  Protobuf serialization is documented as non-canonical across
+  implementations (its docs warn against signing serialized protos);
+  XML C14N/DSig is a historic source of signature-wrapping CVEs.
+- **Conformance strategy needs a zero-toolchain format**: a second
+  implementation (Elixir/Nerves) and county-built tooling must
+  interoperate with no codegen, no schema distribution, no pinned
+  runtime libs. `curl | less` is a conformance debugging tool.
+- **Scale makes binary efficiency irrelevant**: manifests/registry are
+  kilobytes at tens-of-seconds poll intervals; big payloads (blobs) are
+  raw content-addressed octets outside the serialization format anyway.
+- **Readability is operational**: signed registry lives in git —
+  diffable, PR-reviewable; manifests are the audit artifact; TUF (whose
+  threat model we reuse) also signs canonical JSON.
+- **Honest runner-up for the RFC's alternatives section**: deterministic
+  CBOR (RFC 8949 §4.2 / COSE) — solves canonicality in binary, loses on
+  readability and implementer friction, saves bytes we don't need.
+
 ## M2 — store, poll, serve (2026-07-23)
 
 - **Relay endpoints** (agent surface, per-member namespaced because one
