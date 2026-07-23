@@ -35,3 +35,33 @@ each section. Dates are UTC.
 - **Member IDs** match `^[a-z0-9][a-z0-9-]{0,62}$` and appear in URL paths.
   Bundle file paths are clean, relative, slash-separated, no `..`, no `\`,
   no control characters.
+
+## M2 — store, poll, serve (2026-07-23)
+
+- **Relay endpoints** (agent surface, per-member namespaced because one
+  agent holds many bundles):
+  `GET /.well-known/ring/v0/members/<id>/manifest` and
+  `.../members/<id>/blob/<sha256>`. Relays re-serve manifest bytes
+  **exactly as stored** — a relay never re-serializes, so envelopes stay
+  byte-stable across hops (belt to the re-canonicalization suspenders).
+- **Notify** (optional accelerator): `POST /.well-known/ring/v0/notify`
+  with body `{"member_id": "<id>"}` → 202. Hint only; agents drop it
+  when busy and correctness never depends on it.
+- **Poll algorithm** (per member, per cycle): gather manifests from the
+  member's origin AND every peer agent (including the member's own —
+  a co-tenant agent can outlive its origin process); verify each; take
+  the highest valid version; if it beats the stored version, fetch blobs
+  with per-blob source fallback (content addressing makes any holder a
+  valid source). This one rule yields both normal updates and
+  origin-down backfill — there is no separate "backfill mode".
+- **Anti-rollback is local state**: store rejects Put of version < held
+  (`ErrRollback`, distinct from signature errors). Highest *seen* version
+  (validly signed, from any source) is persisted separately and survives
+  restarts; a wiped data dir legitimately resets both.
+- **Failover surface**: `/fallback/<id>/<path>` on every agent, plus
+  Host-header vhost: a request whose Host equals a member's registry
+  `fallback_host` serves that member's bundle at the URL root. Responses
+  carry `Ring-Member`, `Ring-Version`, `Ring-Holder` headers.
+- **Registry reload semantics**: mtime-triggered, verify-then-swap,
+  registry version anti-rollback; any failure keeps the previous
+  registry in force (a broken out-of-band sync must not kill agents).

@@ -17,6 +17,7 @@
       "Bash(git log:*)",
       "Bash(git status)",
       "Bash(mkdir:*)",
+      "Bash(python3:*)",
       "Bash(curl http://localhost:*)",
       "Bash(curl http://127.0.0.1:*)"
     ]
