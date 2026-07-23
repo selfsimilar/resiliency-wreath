@@ -1,0 +1,13 @@
+# Built binaries
+/ring-agent
+/ring-publish
+/ring-sim
+/bin/
+/dist/
+
+# Go test artifacts
+*.test
+*.out
+
+# Local scratch
+*.local

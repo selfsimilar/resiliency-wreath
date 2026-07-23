@@ -1,0 +1,23 @@
+{
+  "registry": {
+    "ring_id": "golden-ring",
+    "version": 2,
+    "timestamp": "2026-07-23T00:00:00Z",
+    "members": [
+      {
+        "id": "county-a",
+        "public_key": "mcRfJTmPS+wnFXDZkDX48r73GE1ecvoILI54HwBFORg=",
+        "origin": "http://127.0.0.1:7001",
+        "agent": "http://127.0.0.1:8001"
+      },
+      {
+        "id": "county-b",
+        "public_key": "Wj3WabrUeuQ+efTDYaqbIDugQhDi77whJi56Q3jrvx0=",
+        "origin": "http://127.0.0.1:7002",
+        "agent": "http://127.0.0.1:8002",
+        "fallback_host": "fallback.county-b.example"
+      }
+    ]
+  },
+  "signature": "HnJj9rtvLmlrSp4DkXXK+r+/nIsIdoX9LSo4p1jTgkma7fl6eYtAkS28rw27BPjXlNHdSji6Qnp+H3BauG+XBw=="
+}

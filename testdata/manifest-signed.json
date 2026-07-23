@@ -1,0 +1,25 @@
+{
+  "manifest": {
+    "member_id": "county-x",
+    "version": 3,
+    "timestamp": "2026-07-23T00:00:00Z",
+    "files": [
+      {
+        "path": "index.html",
+        "sha256": "2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824",
+        "size": 5
+      },
+      {
+        "path": "assets/style.css",
+        "sha256": "7c98040a541657584690ae2a1cc3b42a8b53b159cc60c5d3abbfecbaeac6c94a",
+        "size": 6
+      }
+    ],
+    "metadata": {
+      "contact": "ops@countyx.example",
+      "note": "café ✓ emergency ☎",
+      "😀": "utf-16 sort probe"
+    }
+  },
+  "signature": "NHpoQlXefahDXQLrR9Y9Ab+hByYmeUXQSWYbWh2w93JO5KmMjGfmGirOX+j6tt/t9LIvJJLumWdY6lvrbuOLAA=="
+}
