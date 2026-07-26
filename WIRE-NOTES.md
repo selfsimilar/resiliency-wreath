@@ -133,6 +133,17 @@ Decided against protobuf / XML / CBOR for all signed wire documents:
 - Graceful shutdown and structured logs (slog text/json) were in place
   since M2; M5 added the log-level/format switches.
 
+## Golden fixture regeneration — domain-neutral naming (2026-07-26)
+
+- Golden files under `testdata/` were regenerated (`go test ./internal/wire
+  -run Golden -update`) after renaming fixture content to domain-neutral
+  values (`county-x` → `member-x`, `county-a`/`county-b` → `member-a`/
+  `member-b`, example contact/hostnames → `example.org`, and a new
+  deterministic golden-key seed string). **No wire format changed** — no
+  field names, encodings, envelope shapes, limits, or URL paths differ;
+  only the fixture payloads (and therefore their canonical bytes,
+  signatures, and derived test keys) are new.
+
 ## Open questions carried forward (for the RFC draft)
 
 - Signed health gossip (v0 reports are unsigned observability).

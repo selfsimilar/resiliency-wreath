@@ -156,7 +156,7 @@ func (h *agentHandler) serveBundleFile(w http.ResponseWriter, r *http.Request, i
 	}
 	entry := findFile(m, filePath)
 	if entry == nil {
-		// /fallback/county-x/docs -> docs/index.html convenience.
+		// /fallback/member-a/docs -> docs/index.html convenience.
 		entry = findFile(m, filePath+"/index.html")
 	}
 	if entry == nil {

@@ -104,8 +104,8 @@ func httpGet(t *testing.T, url string) (int, string) {
 
 func TestM2Acceptance(t *testing.T) {
 	rootPub, rootPriv := derivedKey("registry-root")
-	pubA, privA := derivedKey("county-a")
-	pubB, privB := derivedKey("county-b")
+	pubA, privA := derivedKey("member-a")
+	pubB, privB := derivedKey("member-b")
 
 	originDirA, originDirB := t.TempDir(), t.TempDir()
 	originA := newToggleOrigin(originDirA)
@@ -129,8 +129,8 @@ func TestM2Acceptance(t *testing.T) {
 		Version:   1,
 		Timestamp: time.Now().UTC().Format(time.RFC3339),
 		Members: []wire.Member{
-			{ID: "county-a", PublicKey: wire.EncodePublicKey(pubA), Origin: originA.srv.URL, Agent: agentURL(lnA)},
-			{ID: "county-b", PublicKey: wire.EncodePublicKey(pubB), Origin: originB.srv.URL, Agent: agentURL(lnB)},
+			{ID: "member-a", PublicKey: wire.EncodePublicKey(pubA), Origin: originA.srv.URL, Agent: agentURL(lnA)},
+			{ID: "member-b", PublicKey: wire.EncodePublicKey(pubB), Origin: originB.srv.URL, Agent: agentURL(lnB)},
 		},
 	}
 	sr, err := wire.SignRegistry(reg, rootPriv)
@@ -146,8 +146,8 @@ func TestM2Acceptance(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	publish(t, privA, "county-a", originDirA, 1, "A v1: county A is fine")
-	publish(t, privB, "county-b", originDirB, 1, "B v1: county B is fine")
+	publish(t, privA, "member-a", originDirA, 1, "A v1: member A is fine")
+	publish(t, privB, "member-b", originDirB, 1, "B v1: member B is fine")
 
 	mkAgent := func(id string, ln net.Listener, dataDir string) *agent.Agent {
 		a, err := agent.New(agent.Config{
@@ -168,30 +168,30 @@ func TestM2Acceptance(t *testing.T) {
 	}
 
 	dataA, dataB := t.TempDir(), t.TempDir()
-	agentA := mkAgent("county-a", lnA, dataA)
+	agentA := mkAgent("member-a", lnA, dataA)
 	ctxA, cancelA := context.WithCancel(context.Background())
 	defer cancelA()
 	go agentA.Run(ctxA)
 
-	agentB := mkAgent("county-b", lnB, dataB)
+	agentB := mkAgent("member-b", lnB, dataB)
 	ctxB, cancelB := context.WithCancel(context.Background())
 	go agentB.Run(ctxB)
 
 	// Phase 1: both agents converge on v1 of both members.
 	waitFor(t, "both agents hold both bundles at v1", 5*time.Second, func() bool {
-		return agentA.Store.Version("county-a") == 1 && agentA.Store.Version("county-b") == 1 &&
-			agentB.Store.Version("county-a") == 1 && agentB.Store.Version("county-b") == 1
+		return agentA.Store.Version("member-a") == 1 && agentA.Store.Version("member-b") == 1 &&
+			agentB.Store.Version("member-a") == 1 && agentB.Store.Version("member-b") == 1
 	})
-	code, body := httpGet(t, agentURL(lnB)+"/fallback/county-a/")
-	if code != 200 || body != "A v1: county A is fine" {
+	code, body := httpGet(t, agentURL(lnB)+"/fallback/member-a/")
+	if code != 200 || body != "A v1: member A is fine" {
 		t.Fatalf("agent B fallback for A: %d %q", code, body)
 	}
 
 	// Phase 2: origin A dies; agents keep serving v1.
 	originA.down.Store(true)
 	time.Sleep(200 * time.Millisecond) // several poll cycles
-	code, body = httpGet(t, agentURL(lnB)+"/fallback/county-a/")
-	if code != 200 || body != "A v1: county A is fine" {
+	code, body = httpGet(t, agentURL(lnB)+"/fallback/member-a/")
+	if code != 200 || body != "A v1: member A is fine" {
 		t.Fatalf("after origin death, agent B: %d %q", code, body)
 	}
 
@@ -207,9 +207,9 @@ func TestM2Acceptance(t *testing.T) {
 	})
 
 	originA.down.Store(false)
-	publish(t, privA, "county-a", originDirA, 2, "A v2: boil water notice")
+	publish(t, privA, "member-a", originDirA, 2, "A v2: updated home page")
 	waitFor(t, "agent A picks up v2", 5*time.Second, func() bool {
-		return agentA.Store.Version("county-a") == 2
+		return agentA.Store.Version("member-a") == 2
 	})
 	originA.down.Store(true) // origin dies again — v2 now lives only on agent A
 
@@ -219,25 +219,25 @@ func TestM2Acceptance(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	agentB2 := mkAgent("county-b", lnB2, dataB)
+	agentB2 := mkAgent("member-b", lnB2, dataB)
 	ctxB2, cancelB2 := context.WithCancel(context.Background())
 	defer cancelB2()
 	go agentB2.Run(ctxB2)
 
 	waitFor(t, "agent B backfills v2 from peer with origin down", 5*time.Second, func() bool {
-		return agentB2.Store.Version("county-a") == 2
+		return agentB2.Store.Version("member-a") == 2
 	})
-	code, body = httpGet(t, agentURL(lnB2)+"/fallback/county-a/")
-	if code != 200 || body != "A v2: boil water notice" {
+	code, body = httpGet(t, agentURL(lnB2)+"/fallback/member-a/")
+	if code != 200 || body != "A v2: updated home page" {
 		t.Fatalf("agent B after backfill: %d %q", code, body)
 	}
 
 	// Relay surface sanity: manifest re-served byte-identical.
-	stored, _, ok := agentB2.Store.Manifest("county-a")
+	stored, _, ok := agentB2.Store.Manifest("member-a")
 	if !ok {
 		t.Fatal("no stored manifest")
 	}
-	code, relayed := httpGet(t, agentURL(lnB2)+wire.MemberManifestPath("county-a"))
+	code, relayed := httpGet(t, agentURL(lnB2)+wire.MemberManifestPath("member-a"))
 	if code != 200 || relayed != string(stored) {
 		t.Fatalf("relay bytes differ from stored (code %d)", code)
 	}

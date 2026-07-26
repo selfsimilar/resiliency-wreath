@@ -21,7 +21,7 @@ import (
 )
 
 const exampleConfig = `{
-  "member_id": "county-x",
+  "member_id": "example-org",
   "registry": "/etc/ring/registry.json",
   "registry_pub_file": "/etc/ring/root.pub",
   "data_dir": "/var/lib/ring",
@@ -29,8 +29,8 @@ const exampleConfig = `{
   "poll": "30s",
   "probe": "60s",
   "staleness": "5m",
-  "tls_domains": ["fallback.countyx.example"],
-  "acme_email": "ops@countyx.example",
+  "tls_domains": ["fallback.example.org"],
+  "acme_email": "ops@example.org",
   "log_level": "info",
   "log_format": "text"
 }`

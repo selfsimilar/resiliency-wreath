@@ -14,7 +14,7 @@ import (
 // origin well-known paths (see paths.go). Agent is the base URL of the
 // member's peer agent (relay + fallback surface); it may be empty for a
 // member that publishes but does not (yet) host an agent. FallbackHost,
-// if set, is the hostname (e.g. fallback.countyx.gov) that agents
+// if set, is the hostname (e.g. fallback.example.org) that agents
 // recognize in the Host header to serve this member's bundle at the URL
 // root — the always-on fallback surface from DESIGN §9.
 type Member struct {

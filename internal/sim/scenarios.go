@@ -46,7 +46,7 @@ func Find(name string) *Scenario {
 const walkWait = 8 * time.Second
 
 func page(member, version string) map[string]string {
-	return map[string]string{"index.html": fmt.Sprintf("%s %s lights-on page", member, version)}
+	return map[string]string{"index.html": fmt.Sprintf("%s %s home page", member, version)}
 }
 
 func newStandardRing(log io.Writer, verbose bool, specs ...MemberSpec) (*Ring, error) {
@@ -194,7 +194,7 @@ func runTamperedPeer(log io.Writer, verbose bool) error {
 	// Mallory forges a "v9" bundle for alpha, signed with her own key,
 	// blobs included — a complete attack except for the one thing she
 	// cannot fake: alpha's signature.
-	evil := "EVIL: go to the wrong shelter"
+	evil := "EVIL: attacker-substituted content"
 	sum := sha256.Sum256([]byte(evil))
 	forged := &wire.Manifest{
 		MemberID:  "alpha",

@@ -17,14 +17,14 @@ func testKey(t *testing.T, name string) (ed25519.PublicKey, ed25519.PrivateKey) 
 
 func fixtureManifest() *Manifest {
 	return &Manifest{
-		MemberID:  "county-x",
+		MemberID:  "member-x",
 		Version:   3,
 		Timestamp: "2026-07-23T00:00:00Z",
 		Files: []FileEntry{
 			{Path: "index.html", SHA256: hexHash("hello"), Size: 5},
 			{Path: "assets/style.css", SHA256: hexHash("body{}"), Size: 6},
 		},
-		Metadata: map[string]string{"contact": "ops@countyx.example"},
+		Metadata: map[string]string{"contact": "ops@example.org"},
 	}
 }
 
@@ -40,7 +40,7 @@ func hexHash(content string) string {
 }
 
 func TestManifestSignVerifyRoundTrip(t *testing.T) {
-	pub, priv := testKey(t, "county-x")
+	pub, priv := testKey(t, "member-x")
 	sm, err := SignManifest(fixtureManifest(), priv)
 	if err != nil {
 		t.Fatal(err)
@@ -53,21 +53,21 @@ func TestManifestSignVerifyRoundTrip(t *testing.T) {
 	if err != nil {
 		t.Fatalf("verify: %v", err)
 	}
-	if m.MemberID != "county-x" || m.Version != 3 || len(m.Files) != 2 {
+	if m.MemberID != "member-x" || m.Version != 3 || len(m.Files) != 2 {
 		t.Errorf("decoded manifest mangled: %+v", m)
 	}
 }
 
 // Mutating any signed field must fail verification with ErrBadSignature.
 func TestManifestTamperEveryField(t *testing.T) {
-	pub, priv := testKey(t, "county-x")
+	pub, priv := testKey(t, "member-x")
 	sm, err := SignManifest(fixtureManifest(), priv)
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	mutations := []func(man map[string]any){
-		func(m map[string]any) { m["member_id"] = "county-y" },
+		func(m map[string]any) { m["member_id"] = "member-y" },
 		func(m map[string]any) { m["version"] = json.Number("4") },
 		func(m map[string]any) { m["timestamp"] = "2026-07-24T00:00:00Z" },
 		func(m map[string]any) {
@@ -110,8 +110,8 @@ func TestManifestTamperEveryField(t *testing.T) {
 }
 
 func TestManifestWrongKeyRejected(t *testing.T) {
-	_, priv := testKey(t, "county-x")
-	otherPub, _ := testKey(t, "county-y")
+	_, priv := testKey(t, "member-x")
+	otherPub, _ := testKey(t, "member-y")
 	sm, err := SignManifest(fixtureManifest(), priv)
 	if err != nil {
 		t.Fatal(err)
@@ -126,9 +126,9 @@ func TestManifestWrongKeyRejected(t *testing.T) {
 // they count toward the signature (generic canonicalization) and
 // verification still succeeds.
 func TestManifestUnknownFieldForwardCompat(t *testing.T) {
-	pub, priv := testKey(t, "county-x")
+	pub, priv := testKey(t, "member-x")
 	man := map[string]any{
-		"member_id": "county-x",
+		"member_id": "member-x",
 		"version":   1,
 		"timestamp": "2026-07-23T00:00:00Z",
 		"files": []any{
@@ -163,7 +163,7 @@ func TestManifestValidateRejects(t *testing.T) {
 		name   string
 		mutate func(*Manifest)
 	}{
-		{"bad member id", func(m *Manifest) { m.MemberID = "County X" }},
+		{"bad member id", func(m *Manifest) { m.MemberID = "Member X" }},
 		{"zero version", func(m *Manifest) { m.Version = 0 }},
 		{"huge version", func(m *Manifest) { m.Version = 1 << 60 }},
 		{"bad timestamp", func(m *Manifest) { m.Timestamp = "yesterday" }},
@@ -190,15 +190,15 @@ func TestManifestValidateRejects(t *testing.T) {
 }
 
 func fixtureRegistry(t *testing.T) *Registry {
-	pubA, _ := testKey(t, "county-a")
-	pubB, _ := testKey(t, "county-b")
+	pubA, _ := testKey(t, "member-a")
+	pubB, _ := testKey(t, "member-b")
 	return &Registry{
 		RingID:    "test-ring",
 		Version:   1,
 		Timestamp: "2026-07-23T00:00:00Z",
 		Members: []Member{
-			{ID: "county-a", PublicKey: EncodePublicKey(pubA), Origin: "http://127.0.0.1:7001", Agent: "http://127.0.0.1:8001"},
-			{ID: "county-b", PublicKey: EncodePublicKey(pubB), Origin: "http://127.0.0.1:7002", Agent: "http://127.0.0.1:8002", FallbackHost: "fallback.county-b.example"},
+			{ID: "member-a", PublicKey: EncodePublicKey(pubA), Origin: "http://127.0.0.1:7001", Agent: "http://127.0.0.1:8001"},
+			{ID: "member-b", PublicKey: EncodePublicKey(pubB), Origin: "http://127.0.0.1:7002", Agent: "http://127.0.0.1:8002", FallbackHost: "fallback.member-b.example"},
 		},
 	}
 }
@@ -217,10 +217,10 @@ func TestRegistrySignVerifyRoundTrip(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(r.Members) != 2 || r.Member("county-b").FallbackHost == "" {
+	if len(r.Members) != 2 || r.Member("member-b").FallbackHost == "" {
 		t.Errorf("registry mangled: %+v", r)
 	}
-	if _, err := r.MemberKey("county-a"); err != nil {
+	if _, err := r.MemberKey("member-a"); err != nil {
 		t.Error(err)
 	}
 	if _, err := r.MemberKey("nobody"); err == nil {

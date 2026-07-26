@@ -5,19 +5,19 @@
     "timestamp": "2026-07-23T00:00:00Z",
     "members": [
       {
-        "id": "county-a",
-        "public_key": "mcRfJTmPS+wnFXDZkDX48r73GE1ecvoILI54HwBFORg=",
+        "id": "member-a",
+        "public_key": "dYQQbQ7x9+cArC7mmXJPeRwTRKcR6qJsMV9/9+U00kc=",
         "origin": "http://127.0.0.1:7001",
         "agent": "http://127.0.0.1:8001"
       },
       {
-        "id": "county-b",
-        "public_key": "Wj3WabrUeuQ+efTDYaqbIDugQhDi77whJi56Q3jrvx0=",
+        "id": "member-b",
+        "public_key": "KGt9pWywyEI/HWDQClJNneoLoNuuN6pB1JQIh3BHYaU=",
         "origin": "http://127.0.0.1:7002",
         "agent": "http://127.0.0.1:8002",
-        "fallback_host": "fallback.county-b.example"
+        "fallback_host": "fallback.member-b.example"
       }
     ]
   },
-  "signature": "HnJj9rtvLmlrSp4DkXXK+r+/nIsIdoX9LSo4p1jTgkma7fl6eYtAkS28rw27BPjXlNHdSji6Qnp+H3BauG+XBw=="
+  "signature": "TUIheCXor9DTNijGslVUbe3aZSJMkACi2pa1kk+MDXVVJ0pncK4b5Gsu+6iXos9/jk63+HvBB3n/7BLwjqGjCg=="
 }

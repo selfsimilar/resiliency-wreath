@@ -1,6 +1,6 @@
 {
   "manifest": {
-    "member_id": "county-x",
+    "member_id": "member-x",
     "version": 3,
     "timestamp": "2026-07-23T00:00:00Z",
     "files": [
@@ -16,10 +16,10 @@
       }
     ],
     "metadata": {
-      "contact": "ops@countyx.example",
-      "note": "café ✓ emergency ☎",
+      "contact": "ops@example.org",
+      "note": "café ✓ naïve ☎",
       "😀": "utf-16 sort probe"
     }
   },
-  "signature": "NHpoQlXefahDXQLrR9Y9Ab+hByYmeUXQSWYbWh2w93JO5KmMjGfmGirOX+j6tt/t9LIvJJLumWdY6lvrbuOLAA=="
+  "signature": "AF8rk2SDqhNESGMgszPvHQSyyy60C2bWXjnevsIx+k00hlXpbTMsSqVTR5mJ6cMiIiH9tSYXPWjgqbZ4V369BA=="
 }

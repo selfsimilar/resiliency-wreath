@@ -53,14 +53,14 @@ func checkGolden(t *testing.T, name string, got []byte) {
 // goldenKey derives a deterministic keypair so signatures are stable.
 // Test-only; never a pattern for production key generation.
 func goldenKey(name string) (ed25519.PublicKey, ed25519.PrivateKey) {
-	seed := sha256.Sum256([]byte("civic-resilience-ring golden key: " + name))
+	seed := sha256.Sum256([]byte("resiliency-ring golden key: " + name))
 	priv := ed25519.NewKeyFromSeed(seed[:])
 	return priv.Public().(ed25519.PublicKey), priv
 }
 
 func goldenManifest() *Manifest {
 	return &Manifest{
-		MemberID:  "county-x",
+		MemberID:  "member-x",
 		Version:   3,
 		Timestamp: "2026-07-23T00:00:00Z",
 		Files: []FileEntry{
@@ -69,15 +69,15 @@ func goldenManifest() *Manifest {
 		},
 		// Unicode on purpose: exercises JCS escaping + UTF-16 ordering.
 		Metadata: map[string]string{
-			"contact": "ops@countyx.example",
-			"note":    "café ✓ emergency ☎",
+			"contact": "ops@example.org",
+			"note":    "café ✓ naïve ☎",
 			"😀":       "utf-16 sort probe",
 		},
 	}
 }
 
 func TestGoldenManifest(t *testing.T) {
-	pub, priv := goldenKey("county-x")
+	pub, priv := goldenKey("member-x")
 
 	canon, err := Canonicalize(goldenManifest())
 	if err != nil {
@@ -108,16 +108,16 @@ func TestGoldenManifest(t *testing.T) {
 
 func TestGoldenRegistry(t *testing.T) {
 	rootPub, rootPriv := goldenKey("registry-root")
-	pubA, _ := goldenKey("county-a")
-	pubB, _ := goldenKey("county-b")
+	pubA, _ := goldenKey("member-a")
+	pubB, _ := goldenKey("member-b")
 
 	reg := &Registry{
 		RingID:    "golden-ring",
 		Version:   2,
 		Timestamp: "2026-07-23T00:00:00Z",
 		Members: []Member{
-			{ID: "county-a", PublicKey: EncodePublicKey(pubA), Origin: "http://127.0.0.1:7001", Agent: "http://127.0.0.1:8001"},
-			{ID: "county-b", PublicKey: EncodePublicKey(pubB), Origin: "http://127.0.0.1:7002", Agent: "http://127.0.0.1:8002", FallbackHost: "fallback.county-b.example"},
+			{ID: "member-a", PublicKey: EncodePublicKey(pubA), Origin: "http://127.0.0.1:7001", Agent: "http://127.0.0.1:8001"},
+			{ID: "member-b", PublicKey: EncodePublicKey(pubB), Origin: "http://127.0.0.1:7002", Agent: "http://127.0.0.1:8002", FallbackHost: "fallback.member-b.example"},
 		},
 	}
 
