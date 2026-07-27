@@ -1,3 +1,6 @@
+// Copyright 2026 The Resiliency Ring Authors
+// SPDX-License-Identifier: Apache-2.0
+
 // Command ring-publish is the publisher client: build, sign, verify, and
 // push a member's bundle. See KICKOFF.md; the offline incident-signing
 // tool is a deferred mode of this client, not a separate artifact.

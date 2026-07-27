@@ -1,3 +1,6 @@
+// Copyright 2026 The Resiliency Ring Authors
+// SPDX-License-Identifier: Apache-2.0
+
 // Package agent composes store + registry + fetch + serve (+ probe from
 // M3) into the peer-agent daemon. Deployment concerns — which listener,
 // which HTTP client, which logger — are all injectable, so the co-tenant

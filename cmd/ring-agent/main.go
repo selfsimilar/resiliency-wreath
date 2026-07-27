@@ -1,3 +1,6 @@
+// Copyright 2026 The Resiliency Ring Authors
+// SPDX-License-Identifier: Apache-2.0
+
 // Command ring-agent is the peer agent daemon: replicate, verify,
 // serve, probe (DESIGN §6). Co-tenant deployment unit; see
 // internal/agent for the composition.

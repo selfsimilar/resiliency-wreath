@@ -1,3 +1,6 @@
+// Copyright 2026 The Resiliency Ring Authors
+// SPDX-License-Identifier: Apache-2.0
+
 // Command ring-sim drives the simulated multi-member ring: the demo and
 // the protocol test bed (KICKOFF M4). Scenarios are the same code paths
 // `go test ./internal/sim` asserts on; here they stream a readable

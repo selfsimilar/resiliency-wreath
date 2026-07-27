@@ -1,3 +1,6 @@
+// Copyright 2026 The Resiliency Ring Authors
+// SPDX-License-Identifier: Apache-2.0
+
 package sim_test
 
 // M4 acceptance: `go test ./...` runs every scenario green. The same

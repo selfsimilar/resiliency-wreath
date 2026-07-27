@@ -1,3 +1,6 @@
+// Copyright 2026 The Resiliency Ring Authors
+// SPDX-License-Identifier: Apache-2.0
+
 package agent_test
 
 // M2 acceptance (KICKOFF): two agents on localhost; publish v1 to a fake

@@ -1,3 +1,6 @@
+// Copyright 2026 The Resiliency Ring Authors
+// SPDX-License-Identifier: Apache-2.0
+
 package wire
 
 // Well-known URL paths. Every endpoint is versioned under /ring/v0 from

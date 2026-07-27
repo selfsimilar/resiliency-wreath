@@ -1,3 +1,6 @@
+// Copyright 2026 The Resiliency Ring Authors
+// SPDX-License-Identifier: Apache-2.0
+
 // Package serve exposes an agent's HTTP surface (KICKOFF M2):
 //
 //   - relay endpoints under /.well-known/ring/v0/members/<id>/... so

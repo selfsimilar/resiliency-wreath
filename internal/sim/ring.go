@@ -1,3 +1,6 @@
+// Copyright 2026 The Resiliency Ring Authors
+// SPDX-License-Identifier: Apache-2.0
+
 // Package sim spins up a whole ring — N member origins + N peer agents,
 // real HTTP on loopback ports — inside one process, with scriptable
 // failures: dead origins, stopped agents, wiped caches, network

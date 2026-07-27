@@ -1,3 +1,6 @@
+// Copyright 2026 The Resiliency Ring Authors
+// SPDX-License-Identifier: Apache-2.0
+
 // Package registry loads and watches the signed registry file — the
 // thin "IX of the ring" (DESIGN §6). The file is synced out-of-band
 // (git, rsync, USB stick; the protocol does not care) and verified

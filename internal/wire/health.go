@@ -1,3 +1,6 @@
+// Copyright 2026 The Resiliency Ring Authors
+// SPDX-License-Identifier: Apache-2.0
+
 package wire
 
 // Health report: the gossiped mesh-health signal (DESIGN §9). Reports

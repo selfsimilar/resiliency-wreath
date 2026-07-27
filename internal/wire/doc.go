@@ -1,3 +1,6 @@
+// Copyright 2026 The Resiliency Ring Authors
+// SPDX-License-Identifier: Apache-2.0
+
 // Package wire defines every data structure and byte format that crosses
 // the network between ring participants: manifests, the registry, health
 // reports, well-known URL paths, canonicalization, and signing.

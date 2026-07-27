@@ -1,3 +1,6 @@
+// Copyright 2026 The Resiliency Ring Authors
+// SPDX-License-Identifier: Apache-2.0
+
 package wire
 
 import (
@@ -40,7 +43,7 @@ func TestJCSStringEscaping(t *testing.T) {
 	// short escapes stay escaped; other C0 controls become \u00xx with
 	// lowercase hex; DEL (0x7f) is not a C0 control and passes through
 	// as a literal byte.
-	got := mustCanonJSON(t, `{"s":"a\"b\\c\nd\te` + "\\u0001" + `f` + "\\u007f" + `g"}`)
+	got := mustCanonJSON(t, `{"s":"a\"b\\c\nd\te`+"\\u0001"+`f`+"\\u007f"+`g"}`)
 	want := `{"s":"a\"b\\c\nd\te` + "\\u0001" + `f` + "\x7f" + `g"}`
 	if got != want {
 		t.Errorf("got %q want %q", got, want)

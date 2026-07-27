@@ -1,3 +1,6 @@
+// Copyright 2026 The Resiliency Ring Authors
+// SPDX-License-Identifier: Apache-2.0
+
 // Package keyfile reads and writes Ed25519 key files. Local formats,
 // not wire formats: a private key file is one line of standard base64
 // holding the 32-byte seed (mode 0600); a public key file is one line of

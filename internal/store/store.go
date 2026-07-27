@@ -1,3 +1,6 @@
+// Copyright 2026 The Resiliency Ring Authors
+// SPDX-License-Identifier: Apache-2.0
+
 // Package store is the on-disk bundle cache with anti-rollback. Layout:
 //
 //	<dir>/members/<id>/v<version>/manifest.json   signed envelope

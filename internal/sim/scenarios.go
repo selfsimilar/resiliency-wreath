@@ -1,3 +1,6 @@
+// Copyright 2026 The Resiliency Ring Authors
+// SPDX-License-Identifier: Apache-2.0
+
 package sim
 
 // The seven KICKOFF M4 scenarios. Each builds its own ring, drives a

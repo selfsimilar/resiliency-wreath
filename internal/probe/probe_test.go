@@ -1,3 +1,6 @@
+// Copyright 2026 The Resiliency Ring Authors
+// SPDX-License-Identifier: Apache-2.0
+
 package probe_test
 
 // M3 acceptance (KICKOFF): the health matrix correctly distinguishes a

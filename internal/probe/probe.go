@@ -1,3 +1,6 @@
+// Copyright 2026 The Resiliency Ring Authors
+// SPDX-License-Identifier: Apache-2.0
+
 // Package probe implements data-plane liveness (DESIGN §9, KICKOFF M3):
 // each agent periodically fetches every holder's copy of every member's
 // bundle manifest and classifies it. The three-part check is
