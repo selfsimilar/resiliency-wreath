@@ -144,6 +144,153 @@ Decided against protobuf / XML / CBOR for all signed wire documents:
   only the fixture payloads (and therefore their canonical bytes,
   signatures, and derived test keys) are new.
 
+## Proposed extensions — agreed direction, not yet commitments (2026-07-26)
+
+Everything above this line is shipped and golden-pinned. Everything below
+is design direction from post-MVP review, recorded together so the wire
+implications stay coherent; each item becomes a commitment only when it
+lands (with goldens and its own dated entry).
+
+**Framing — four tiers of tunables**, distinguished by who decides and
+where enforcement happens:
+
+1. *Protocol constants* — compiled in: crypto suite, path grammar,
+   envelope shapes, absolute ceilings.
+2. *Ring policy* — signed into the registry, uniform per ring.
+3. *Member declarations* — signed per-member registry fields.
+4. *Node-local config* — unsigned, private behavior only.
+
+Rule: anything one node enforces **against another** must live in a
+signed tier; anything purely private must stay out of the registry so it
+needs no ceremony to change.
+
+### P1 — Origins are ring-agnostic; rings are overlays (invariant)
+
+- A ring exists only as a registry. Manifests, bundles, and origin
+  endpoints carry NO ring identity — never add a `ring_id` to the
+  manifest. This is what makes multi-ring membership free: the same key
+  and origin listed in several registries, one signed publish serving
+  all of them. Version counters cannot conflict (one publisher).
+- Daemon shape: a supervisor running one agent instance per ring (own
+  registry, data dir, listener). Stores must never be shared across
+  rings — member IDs are ring-scoped and collide. No wire change.
+
+### P2 — Ring policy rides the registry
+
+- Optional `limits` object in the registry payload (max blob/bundle
+  bytes, file count, retention depth, replication factor, staleness
+  tolerance). Absent = v0 constants, so old registries stay valid.
+  Registry version monotonicity orders limit rollouts.
+- Compiled absolute ceilings remain: a compromised governor set must not
+  be able to declare resource-exhausting limits.
+- Raising blob limits far past v0 requires the (non-wire) streaming
+  work: stream-to-disk verify, Range/resume on immutable blobs, and
+  cross-version blob reuse in fetch (currently re-downloads blobs it
+  already holds — cheap fix, most of the delta-transfer win).
+
+### P3 — Roles, capacity, selective holding
+
+- Member entry gains `roles` (publisher, holder; both = v0 behavior).
+  Publisher-only already exists (empty `agent`); holder-only makes
+  `origin` optional — the "patron" case: a large host joining rings it
+  is invited to, holding signed content it cannot alter.
+- `capacity` pledge per member: storage bytes, egress, availability
+  target. Probes already passively audit holding; the client walk
+  reveals who answers; egress is unverifiable until the bad day.
+- `holds`: explicit signed list of members held (absent = all). Ring
+  policy sets `replication_factor` as the floor. Probe semantics must
+  then split "missing" into not-obligated (fine) vs obligated-and-absent
+  (reneging). The registry is the contract; the health matrix is the
+  enforcement — there is deliberately no other.
+
+### P4 — Governance: threshold-signed registry
+
+- Envelope alternative: `{"registry": {…}, "signatures": [{"governor":
+  …, "signature": …}, …]}`; verifiers require ≥ threshold from the
+  governor set. The veto becomes arithmetic at signing time. There is
+  still NO runtime consensus protocol — agents only ever verify a file.
+- Governor set and threshold live in the registry itself; registry vN's
+  set validates vN+1 (rotation is an ordinary signed update; the first
+  threshold registry is validated by the last root-signed one).
+- Admission (may this key publish into the ring) is ring-wide and
+  threshold-gated. Obligation (must I hold them) is per-member via
+  `holds` and unilaterally declinable — visible in the matrix, never
+  punished by protocol.
+
+### P5 — Steering documents (same-domain failover)
+
+- New signed document at `/.well-known/ring/v0/steering/<id>`: desired
+  DNS state, never imperative commands —
+  `{"steering": {"member_id", "version" (monotonic), "timestamp",
+  "state": "primary"|"failover", "records": […]}, "signature"}`.
+  Desired-state + signature + monotonic version means connectors are
+  dumb idempotent reconcilers, safely run in parallel, replay-proof.
+- Pre-signed standing orders: the member signs BOTH record sets ahead of
+  time plus a policy (watcher quorum, dwell, restore rules). At incident
+  time, delegated watchers select which pre-signed set is current; the
+  member's key stays offline during the emergency and no peer ever holds
+  registrar credentials. Member entry gains `steering_key` and
+  `watchers`.
+- This makes watcher observations load-bearing and absorbs the "signed
+  health gossip" open question: watcher attestations MUST be signed.
+- Connectors: standalone pollers or exec plugins against the JSON;
+  provider APIs stay out of the core. Registrar escape hatch: one manual
+  CNAME into an API-capable zone (the acme-dns pattern). Cert custody:
+  delegated DNS-01 (`_acme-challenge` CNAME) so designated holders keep
+  live, auto-renewed certs for fallback names BEFORE the emergency; CAA
+  (incl. RFC 8657 account binding) caps rogue issuance.
+- Physics: TTL + probe interval + quorum dwell ≈ 2–5 min blackout floor.
+  Standing multi-value A/HTTPS records are layer 0 and mask the window;
+  split-brain guard = quorum across network-diverse watchers plus
+  connector-side independent confirmation; restore slower than failover.
+
+### P6 — Review gate and attestations
+
+- Gate placement invariant: relay endpoints ALWAYS serve newest-verified
+  (replication must never wait on humans); the fallback surface serves
+  newest-APPROVED. Replicate eagerly, serve conservatively.
+- Store: per member, `latest` (verified) and `serving` (approved)
+  pointers; rejection writes a tombstone (version, manifest hash, blob
+  hashes) and PURGES blobs — never re-served, never re-fetched, and
+  because manifests arrive before blobs, an early flag suppresses the
+  blob download entirely.
+- The served promise becomes "last authentic version we vouched for."
+  Health vocabulary gains `pending-review`; health entries gain
+  serving_version / latest_version / review_status (preview link is
+  derivable: holder agent + `/fallback/<id>/`). Holders legitimately
+  serve different versions during review windows; `Ring-Version` already
+  exposes this.
+- Attestations: one signed document, two polarities — flag and vouch:
+  `{"attestation": {"subject_member", "subject_version",
+  "manifest_sha256", "blob_sha256"?, "polarity": "flag"|"vouch",
+  "category", "note", "attester", "timestamp"}, "signature"}` (attester's
+  member key). Gossiped pull-based over the relay like manifests.
+- Flags are ADVISORY: they never mechanically reject anywhere — that
+  would hand any member a censorship primitive. Each holder maps
+  category→action locally (e.g. illegal-content flag from anyone →
+  suppress fetch + quarantine pending review; dispute → annotate the
+  queue). Attestations are attributable speech; false flagging is
+  legible in the same matrix as everything else.
+- Review transition policy is the tunable; the state machine is
+  universal: strict (affirmative local review) / delegated (K trusted
+  vouches, no flags) / dwell (auto-approve after T unless flagged) /
+  open (v0 behavior). Ring policy may set a floor (`review_minimum`);
+  the reviewer is a node-local interface (human, on-call rota, or
+  automated) taking manifest + diff + flags → verdict. Category taxonomy
+  is ring policy; category→action mapping is node-local.
+- Review policy is per-SUBJECT, not global: each holder resolves
+  (subject member → policy) from a node default plus overrides, so
+  out-of-band knowledge ("personnel change at X") can tighten review
+  for one member only. Rules: overrides may only tighten relative to
+  the ring `review_minimum` floor, never loosen; overrides carry an
+  expiry so temporary caution reverts by default instead of rotting
+  into permanence. Escalations can also be automatic from in-band
+  events — a key rotation for X in the registry IS a personnel-change
+  signal (auto-strict for a window), a new member's first versions get
+  probationary strict, a dispute flag puts its subject in temporary
+  strict. Manual and automatic escalation are the same mechanism with
+  different triggers. Entirely node-local; no wire change.
+
 ## Open questions carried forward (for the RFC draft)
 
 - Signed health gossip (v0 reports are unsigned observability).
