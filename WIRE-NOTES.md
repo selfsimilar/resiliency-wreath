@@ -291,6 +291,38 @@ needs no ceremony to change.
   strict. Manual and automatic escalation are the same mechanism with
   different triggers. Entirely node-local; no wire change.
 
+### P7 — Member directives: owner-initiated failover and freeze
+
+- Completes the threat quadrant the rest of the design leaves open:
+  origin ALIVE but hostile (defacement, hijacked hosting), where the
+  legitimate owner wants to summon failover rather than wait for
+  detection. Two sub-cases with different depths:
+  - Attacker without the signing key: peers are already safe (the
+    defacement cannot be signed; agents keep the last genuine version).
+    The only gap is traffic steering — add a member-initiated trigger
+    for the P5 failover state alongside the watcher-quorum trigger.
+  - Attacker WITH the publishing key: they can publish validly-signed
+    poison (P6 review gates are the existing brake). Requires a new
+    primitive: an optional per-member `emergency_key` in the registry —
+    held offline (management/board, or a mobile signer app) — that
+    outranks the publishing key for exactly three verbs: FREEZE ("serve
+    nothing newer than version N"), STEER (activate failover), REVOKE
+    (fast-track publishing-key rotation to the governors). TUF-style
+    role separation.
+- Mechanism: a small signed "member directive" document — monotonic
+  version, explicit TTL (a stale panic must expire, not stick), signed
+  by the member key or the emergency key (emergency outranks). Injected
+  via ANY reachable agent and gossiped like attestations: the injection
+  point needs no trust, the signature carries it.
+- Freeze composes with existing pieces: it is the P6 serving/latest
+  pointer split operated by the SUBJECT rather than the holder, and P2
+  retention depth is what guarantees a known-good version still exists
+  to freeze onto.
+- Bounded damage (state in the RFC): a stolen emergency key can only
+  select among PREVIOUSLY SIGNED genuine versions and flip pre-signed
+  steering states — worst case is mischievous rollback plus a DNS flip,
+  never content forgery. Recovery is ordinary registry rotation.
+
 ## Open questions carried forward (for the RFC draft)
 
 - Signed health gossip (v0 reports are unsigned observability).
