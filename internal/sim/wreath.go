@@ -1,7 +1,7 @@
-// Copyright 2026 The Resiliency Ring Authors
+// Copyright 2026 The Resiliency Wreath Authors
 // SPDX-License-Identifier: Apache-2.0
 
-// Package sim spins up a whole ring — N member origins + N peer agents,
+// Package sim spins up a whole wreath — N member origins + N peer agents,
 // real HTTP on loopback ports — inside one process, with scriptable
 // failures: dead origins, stopped agents, wiped caches, network
 // partitions, and malicious peers. It is simultaneously the demo and
@@ -24,9 +24,9 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/selfsimilar/resiliency-ring/internal/agent"
-	"github.com/selfsimilar/resiliency-ring/internal/bundle"
-	"github.com/selfsimilar/resiliency-ring/internal/wire"
+	"github.com/selfsimilar/resiliency-wreath/internal/agent"
+	"github.com/selfsimilar/resiliency-wreath/internal/bundle"
+	"github.com/selfsimilar/resiliency-wreath/internal/wire"
 )
 
 // ToggleServer is an origin that can play dead (503 on every request)
@@ -53,7 +53,7 @@ func newToggleServer(inner http.Handler) *ToggleServer {
 // SetDown toggles the "origin is dead" switch.
 func (ts *ToggleServer) SetDown(down bool) { ts.down.Store(down) }
 
-// MemberSpec describes one ring participant. A Fake member gets a real
+// MemberSpec describes one wreath participant. A Fake member gets a real
 // key, origin, and registry entry, but its "agent" is a hostile shell:
 // it serves whatever handler the scenario installs (default 404)
 // instead of running the real protocol.
@@ -89,10 +89,10 @@ type Node struct {
 func (n *Node) Agent() *agent.Agent { return n.agent }
 
 // AgentURL is the node's agent base URL (real or fake), stable for the
-// life of the ring even across agent restarts.
+// life of the wreath even across agent restarts.
 func (n *Node) AgentURL() string { return n.agentURL }
 
-// Config tunes a simulated ring.
+// Config tunes a simulated wreath.
 type Config struct {
 	Members   []MemberSpec
 	Poll      time.Duration // default 60ms
@@ -102,8 +102,8 @@ type Config struct {
 	Verbose   bool          // also stream agent logs
 }
 
-// Ring is a running simulated ring.
-type Ring struct {
+// Wreath is a running simulated wreath.
+type Wreath struct {
 	cfg     Config
 	dir     string
 	Nodes   map[string]*Node
@@ -116,9 +116,9 @@ type Ring struct {
 	log   io.Writer
 }
 
-// NewRing builds keys, origins, registry, and agents, and starts every
+// NewWreath builds keys, origins, registry, and agents, and starts every
 // real member's agent.
-func NewRing(cfg Config) (*Ring, error) {
+func NewWreath(cfg Config) (*Wreath, error) {
 	if cfg.Poll <= 0 {
 		cfg.Poll = 60 * time.Millisecond
 	}
@@ -131,11 +131,11 @@ func NewRing(cfg Config) (*Ring, error) {
 	if cfg.Log == nil {
 		cfg.Log = os.Stdout
 	}
-	dir, err := os.MkdirTemp("", "ring-sim-*")
+	dir, err := os.MkdirTemp("", "wreath-sim-*")
 	if err != nil {
 		return nil, err
 	}
-	r := &Ring{
+	r := &Wreath{
 		cfg:   cfg,
 		dir:   dir,
 		Nodes: make(map[string]*Node),
@@ -161,11 +161,11 @@ func NewRing(cfg Config) (*Ring, error) {
 		if err := os.MkdirAll(n.OriginDir, 0o755); err != nil {
 			return nil, err
 		}
-		// A member origin is its real website PLUS the two static ring
+		// A member origin is its real website PLUS the two static wreath
 		// endpoints (that's the whole onboarding story for a member).
 		node := n
 		n.Origin = newToggleServer(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
-			if strings.HasPrefix(req.URL.Path, "/.well-known/ring/") {
+			if strings.HasPrefix(req.URL.Path, "/.well-known/wreath/") {
 				originHandler(node.OriginDir).ServeHTTP(w, req)
 				return
 			}
@@ -206,7 +206,7 @@ func NewRing(cfg Config) (*Ring, error) {
 	}
 
 	reg := &wire.Registry{
-		RingID:    "sim-ring",
+		WreathID:  "sim-wreath",
 		Version:   1,
 		Timestamp: time.Now().UTC().Format(time.RFC3339),
 		Members:   members,
@@ -235,7 +235,7 @@ func NewRing(cfg Config) (*Ring, error) {
 	return r, nil
 }
 
-func (r *Ring) registerURL(rawURL, node string) {
+func (r *Wreath) registerURL(rawURL, node string) {
 	if host := hostOf(rawURL); host != "" {
 		r.Net.RegisterHost(host, node)
 	}
@@ -249,11 +249,11 @@ func hostOf(rawURL string) string {
 }
 
 // Eventf appends a timestamped line to the scenario event log.
-func (r *Ring) Eventf(format string, args ...any) {
+func (r *Wreath) Eventf(format string, args ...any) {
 	fmt.Fprintf(r.log, "%8.3fs  %s\n", time.Since(r.start).Seconds(), fmt.Sprintf(format, args...))
 }
 
-func (r *Ring) agentLogger(id string) *slog.Logger {
+func (r *Wreath) agentLogger(id string) *slog.Logger {
 	level := slog.LevelWarn
 	if r.cfg.Verbose {
 		level = slog.LevelDebug
@@ -263,7 +263,7 @@ func (r *Ring) agentLogger(id string) *slog.Logger {
 
 // StartAgent starts (or restarts) a real member's agent on its original
 // port, reusing whatever is in its data directory.
-func (r *Ring) StartAgent(id string) error {
+func (r *Wreath) StartAgent(id string) error {
 	n := r.Nodes[id]
 	if n == nil || n.Fake {
 		return fmt.Errorf("sim: %q is not a real member", id)
@@ -309,7 +309,7 @@ func (r *Ring) StartAgent(id string) error {
 }
 
 // StopAgent gracefully stops a member's agent and frees its port.
-func (r *Ring) StopAgent(id string) {
+func (r *Wreath) StopAgent(id string) {
 	n := r.Nodes[id]
 	if n == nil || n.agent == nil {
 		return
@@ -321,7 +321,7 @@ func (r *Ring) StopAgent(id string) {
 }
 
 // WipeData deletes a member's bundle cache (cold-cache restart).
-func (r *Ring) WipeData(id string) error {
+func (r *Wreath) WipeData(id string) error {
 	n := r.Nodes[id]
 	if n.agent != nil {
 		return fmt.Errorf("sim: stop agent %q before wiping", id)
@@ -333,13 +333,13 @@ func (r *Ring) WipeData(id string) error {
 type handlerBox struct{ h http.Handler }
 
 // SetFakeHandler installs the hostile behavior of a fake member's agent.
-func (r *Ring) SetFakeHandler(id string, h http.Handler) {
+func (r *Wreath) SetFakeHandler(id string, h http.Handler) {
 	r.Nodes[id].fakeHandler.Store(handlerBox{h})
 }
 
 // Publish builds, signs, and pushes a bundle to a member's origin, then
 // (optionally) notifies every running agent.
-func (r *Ring) Publish(id string, version uint64, files map[string]string, notify bool) error {
+func (r *Wreath) Publish(id string, version uint64, files map[string]string, notify bool) error {
 	n := r.Nodes[id]
 	site := filepath.Join(r.dir, id, fmt.Sprintf("site-v%d", version))
 	for p, content := range files {
@@ -376,7 +376,7 @@ func (r *Ring) Publish(id string, version uint64, files map[string]string, notif
 
 // NotifyAll sends the best-effort "re-poll now" hint for member id to
 // every running agent.
-func (r *Ring) NotifyAll(memberID string) {
+func (r *Wreath) NotifyAll(memberID string) {
 	body := fmt.Sprintf("{%q: %q}", "member_id", memberID)
 	client := &http.Client{Timeout: 300 * time.Millisecond}
 	for _, hid := range r.Order {
@@ -393,7 +393,7 @@ func (r *Ring) NotifyAll(memberID string) {
 
 // WaitVersion blocks until every listed holder's store has member at
 // exactly version (or times out).
-func (r *Ring) WaitVersion(timeout time.Duration, memberID string, version uint64, holders ...string) error {
+func (r *Wreath) WaitVersion(timeout time.Duration, memberID string, version uint64, holders ...string) error {
 	deadline := time.Now().Add(timeout)
 	for {
 		ok := true
@@ -425,7 +425,7 @@ func (r *Ring) WaitVersion(timeout time.Duration, memberID string, version uint6
 }
 
 // RealMembers returns the IDs of non-fake members.
-func (r *Ring) RealMembers() []string {
+func (r *Wreath) RealMembers() []string {
 	var out []string
 	for _, id := range r.Order {
 		if !r.Nodes[id].Fake {
@@ -446,7 +446,7 @@ type WalkResult struct {
 // full endpoint list (origin first, then every peer agent's fallback
 // surface for the member) tries each in order and settles on the first
 // success. No external brain — exactly the multi-A/HTTPS-record walk.
-func (r *Ring) Walk(memberID, path string) (*WalkResult, error) {
+func (r *Wreath) Walk(memberID, path string) (*WalkResult, error) {
 	n := r.Nodes[memberID]
 	type endpoint struct{ name, url string }
 	eps := []endpoint{{"origin:" + memberID, n.Origin.URL + "/" + path}}
@@ -479,7 +479,7 @@ func (r *Ring) Walk(memberID, path string) (*WalkResult, error) {
 
 // HealthFrom fetches an agent's health report (out-of-band observer,
 // unaffected by partitions).
-func (r *Ring) HealthFrom(id string) (*wire.HealthReport, error) {
+func (r *Wreath) HealthFrom(id string) (*wire.HealthReport, error) {
 	resp, err := http.Get(r.Nodes[id].agentURL + wire.HealthPath)
 	if err != nil {
 		return nil, err
@@ -502,8 +502,8 @@ func Entry(rep *wire.HealthReport, member, holder string) *wire.HealthEntry {
 	return nil
 }
 
-// Close stops everything and removes the ring's scratch directory.
-func (r *Ring) Close() {
+// Close stops everything and removes the wreath's scratch directory.
+func (r *Wreath) Close() {
 	for _, id := range r.Order {
 		n := r.Nodes[id]
 		if n.agent != nil {

@@ -1,9 +1,10 @@
-# Civic Resilience Ring — Go reference implementation
+# Civic Resilience Wreath — Go reference implementation
 
-A vetted web-ring in which member organizations (municipalities,
-non-profits) dedicate a small slice of compute to serving each other's
-**signed, static "lights-on" page** when a member's own site goes dark.
-Pooled, reciprocal failover — mutual aid for uptime.
+A vetted **wreath** of member organizations (municipalities,
+non-profits), each dedicating a small slice of compute to serving the
+others' **signed, static "lights-on" page** when a member's own site
+goes dark. Pooled, reciprocal failover — mutual aid for uptime.
+(Spiritual ancestor: the web-ring.)
 
 - **Why / decisions:** [DESIGN.md](DESIGN.md)
 - **Build brief / milestones:** [KICKOFF.md](KICKOFF.md)
@@ -13,9 +14,10 @@ Pooled, reciprocal failover — mutual aid for uptime.
 
 | Path | What it is |
 |---|---|
-| `cmd/ring-agent` | Peer agent daemon: replicate, verify, serve, probe |
-| `cmd/ring-publish` | Publisher CLI: keygen, build, sign, verify, push |
-| `cmd/ring-sim` | Simulated multi-member ring: demo + protocol test bed |
+| `cmd/wreath-agent` | Peer agent daemon: replicate, verify, serve, probe |
+| `cmd/wreath-publish` | Publisher CLI: keygen, build, sign, verify, push |
+| `cmd/wreath-sim` | Simulated multi-member wreath: demo + protocol test bed |
+| `internal/demo` | `wreath-sim demo`: long-running wreath + web dashboard |
 | `internal/wire` | **The future RFC**: wire types, RFC 8785 canonicalization, Ed25519 sign/verify |
 
 Trust model in one line: members publish **Ed25519-signed** bundles;
@@ -27,10 +29,18 @@ catches both.
 
 ```sh
 go test ./...            # everything, incl. the 7 failure scenarios
-go run ./cmd/ring-sim list
-go run ./cmd/ring-sim run -scenario=origin-down
-go run ./cmd/ring-sim run -scenario=all
+go run ./cmd/wreath-sim list
+go run ./cmd/wreath-sim run -scenario=origin-down
+go run ./cmd/wreath-sim run -scenario=all
+go run ./cmd/wreath-sim demo   # live dashboard at http://127.0.0.1:8100
 ```
+
+`wreath-sim demo` runs the same real agents long-lived at human pace, with
+a web dashboard: per-member iframes loaded through a client-walk proxy
+(the stand-in for the browser's HTTPS/SVCB-record walk, RFC 9460), the
+gossiped health matrix, manual kill/revive/publish controls, and a chaos
+mode that swings members dark and back automatically. DNS is the one
+simulated component; everything else is the reference implementation.
 
 A scenario run reads like an incident log:
 

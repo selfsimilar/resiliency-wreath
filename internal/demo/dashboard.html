@@ -1,0 +1,392 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Resilience Wreath — live failover demo</title>
+<style>
+  :root {
+    color-scheme: light;
+    --page:#f9f9f7; --surface:#fcfcfb; --ink:#0b0b0b; --ink2:#52514e;
+    --muted:#898781; --grid:#e1e0d9; --baseline:#c3c2b7;
+    --border:rgba(11,11,11,.10);
+    --good:#0ca30c; --warn:#fab219; --serious:#ec835a; --critical:#d03b3b;
+    --link:#2a78d6;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      color-scheme: dark;
+      --page:#0d0d0d; --surface:#1a1a19; --ink:#ffffff; --ink2:#c3c2b7;
+      --muted:#898781; --grid:#2c2c2a; --baseline:#383835;
+      --border:rgba(255,255,255,.10);
+      --link:#3987e5;
+    }
+  }
+  * { box-sizing:border-box }
+  body { margin:0; background:var(--page); color:var(--ink);
+         font:14px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  .wrap { max-width:1240px; margin:0 auto; padding:16px 20px 48px; }
+
+  header { display:flex; align-items:baseline; gap:12px 18px; flex-wrap:wrap; margin-bottom:4px; }
+  h1 { font-size:1.3rem; margin:0; letter-spacing:-.01em; }
+  h2 { font-size:.95rem; margin:0 0 8px; }
+  .sub { color:var(--ink2); }
+  .meta { color:var(--muted); font-size:.82rem; }
+  .spacer { flex:1 }
+  .switch { display:inline-flex; align-items:center; gap:6px; font-size:.85rem;
+            color:var(--ink2); cursor:pointer; user-select:none; }
+  .honesty { color:var(--muted); font-size:.82rem; margin:2px 0 14px; max-width:72rem; }
+
+  .cards { display:grid; grid-template-columns:repeat(auto-fit,minmax(330px,1fr)); gap:14px; }
+  .panel, .card { background:var(--surface); border:1px solid var(--border);
+                  border-radius:10px; padding:13px 15px; }
+  .card { --accent:var(--al); border-top:3px solid var(--accent); }
+  @media (prefers-color-scheme: dark) { .card { --accent:var(--ad); } }
+
+  .cardhead { display:flex; align-items:center; gap:9px; margin-bottom:8px; }
+  .swatch { width:11px; height:11px; border-radius:3px; background:var(--accent); flex:none; }
+  .cardhead h3 { font-size:1rem; margin:0; }
+  .cardhead .org { color:var(--muted); font-size:.8rem; line-height:1.2; }
+  .served { margin-left:auto; font-size:.83rem; text-align:right; }
+  .served .mut { color:var(--muted); }
+
+  .procs { display:flex; align-items:center; gap:10px; flex-wrap:wrap;
+           margin:-2px 0 8px; font-size:.78rem; }
+  .proc { color:var(--ink2); }
+  .proc .st { margin-right:4px; font-size:.6rem; vertical-align:1px; }
+  .addr { color:var(--muted); font-size:.72rem; font-variant-numeric:tabular-nums; }
+  .rlabel { color:var(--muted); font-size:.72rem; margin-right:3px; }
+
+  .dot { display:inline-block; width:9px; height:9px; border-radius:3px;
+         vertical-align:baseline; margin-right:4px; }
+  i.st { font-style:normal; font-weight:700; margin-right:3px; }
+  .st.good { color:var(--good); } .st.warn { color:var(--warn); }
+  .st.serious { color:var(--serious); } .st.critical { color:var(--critical); }
+
+  .route { display:flex; align-items:center; flex-wrap:wrap; gap:4px 2px;
+           margin:0 0 9px; font-size:.8rem; }
+  .hop { display:inline-flex; align-items:center; gap:5px; padding:2px 8px;
+         border:1px solid var(--grid); border-radius:999px; color:var(--ink2); }
+  .hop b { font-weight:600; color:var(--muted); font-size:.72rem; }
+  .hop .dot { margin:0; }
+  .hop.active { border-color:var(--accent); color:var(--ink); font-weight:600;
+                box-shadow:0 0 0 1px var(--accent) inset; }
+  .hop.dead { opacity:.45; text-decoration:line-through; }
+  .arrow { color:var(--baseline); padding:0 2px; }
+
+  iframe { width:100%; height:248px; border:1px solid var(--grid);
+           border-radius:6px; background:#f9f9f7; display:block; }
+  .ctl { display:flex; gap:7px; margin-top:9px; flex-wrap:wrap; }
+  button { font:inherit; font-size:.8rem; color:var(--ink); background:transparent;
+           border:1px solid var(--baseline); border-radius:6px; padding:3px 10px;
+           cursor:pointer; }
+  button:hover { background:var(--page); }
+  button:active { transform:translateY(1px); }
+
+  .twocol { display:grid; grid-template-columns:minmax(0,3fr) minmax(0,2fr);
+            gap:14px; margin-top:14px; }
+  @media (max-width:880px) { .twocol { grid-template-columns:1fr; } }
+
+  table { border-collapse:collapse; width:100%; margin-top:4px; }
+  th, td { text-align:left; padding:5px 10px 5px 0; border-bottom:1px solid var(--grid);
+           font-size:.85rem; white-space:nowrap; }
+  th { color:var(--muted); font-weight:500; font-size:.78rem; }
+  td:first-child, th:first-child { padding-right:14px; }
+  .cell { color:var(--ink); }
+  .cell .v { color:var(--ink2); font-variant-numeric:tabular-nums; }
+  .mut { color:var(--muted); }
+  .legend { margin-top:10px; color:var(--ink2); font-size:.78rem;
+            display:flex; gap:14px; flex-wrap:wrap; }
+
+  ol.events { list-style:none; margin:4px 0 0; padding:0; font-size:.83rem;
+              max-height:330px; overflow-y:auto; }
+  ol.events li { padding:2.5px 0; border-bottom:1px solid var(--grid); }
+  ol.events .t { color:var(--muted); font-variant-numeric:tabular-nums;
+                 margin-right:8px; font-size:.78rem; }
+
+  .prose { display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+           gap:14px; margin-top:14px; }
+  .prose p { margin:0; color:var(--ink2); font-size:.85rem; }
+  .prose b { color:var(--ink); }
+  .prose a { color:var(--link); text-decoration:underline; text-underline-offset:2px; }
+  .panel.wide { grid-column:1 / -1; }
+  pre.dns { margin:2px 0 10px; padding:10px 12px; background:var(--page);
+            border:1px solid var(--grid); border-radius:6px; overflow-x:auto;
+            font:12px/1.6 ui-monospace, SFMono-Regular, Menlo, monospace;
+            color:var(--ink); }
+  pre.dns .c { color:var(--muted); }
+</style>
+</head><body>
+<div class="wrap">
+  <header>
+    <h1>Resilience Wreath</h1>
+    <span class="sub">live failover demo — the real agents, compressed timing</span>
+    <span class="spacer"></span>
+    <label class="switch"><input type="checkbox" id="chaos"> chaos mode</label>
+    <span class="meta" id="meta">connecting…</span>
+  </header>
+  <p class="honesty">
+    Each iframe loads through this page's <b>client-walk proxy</b> — the stand-in for a
+    browser resolving the member's HTTPS/SVCB record set (RFC 9460): origin at
+    priority 1, then peer fallback surfaces in order; first answer wins. DNS is the one
+    simulated component — everything else below is the reference implementation actually running.
+  </p>
+
+  <section class="cards" id="cards"></section>
+
+  <section class="twocol">
+    <div class="panel">
+      <h2>Mesh health matrix</h2>
+      <div class="meta">rows: whose bundle · columns: which wreath-agent holds it · full
+        mesh — aggregated from every agent's own gossiped report</div>
+      <table id="matrix"></table>
+      <div class="legend">
+        <span><i class="st good">✓</i>healthy</span>
+        <span><i class="st warn">◷</i>stale</span>
+        <span><i class="st serious">◌</i>missing</span>
+        <span><i class="st serious">⚠</i>down</span>
+        <span><i class="st critical">✕</i>invalid</span>
+      </div>
+    </div>
+    <div class="panel">
+      <h2>Event log</h2>
+      <ol class="events" id="events"></ol>
+    </div>
+  </section>
+
+  <section class="prose">
+    <div class="panel wide"><h2>The DNS you would actually configure — none of it changes during failover</h2>
+      <pre class="dns" id="dnspre"></pre>
+      <p>The record set is published <b>once</b>: the failover hostname lists the origin
+      at priority 1 and the peers sharing priority 2 — clients pick randomly among
+      equal-priority records, so outage load spreads across the peer set instead of
+      dogpiling one fallback (SVCB has no weights; that crude spreading is all this
+      layer does, by design). Failing over needs <b>no DNS edit, no
+      health-checking brain, and no propagation wait</b> — the client itself walks the
+      list, MX-style (this page's walk proxy plays that browser role). Client support
+      for <a href="https://www.rfc-editor.org/rfc/rfc9460">RFC 9460</a> records still
+      varies — there is no caniuse entry (the
+      <a href="https://github.com/Fyrd/caniuse/issues/6091">request</a> has been open
+      since 2021): Safari walks the full record set natively, Firefox uses HTTPS
+      records when DoH is enabled, Chromium's use is partial (ALPN and ECH more than
+      endpoint failover) — see this
+      <a href="https://kalfeher.com/https-current-state/">per-browser breakdown</a>.
+      Which is why the plain multi-A records stay in the set: <b>every</b> client falls
+      back across those, just slower (8–30 seconds) — fine for a lights-on page, wrong
+      for a real app. Peer agents recognize
+      the member's hostname by Host/SNI and hold real certificates for it via the
+      delegated <b>_acme-challenge</b> CNAME (DNS-01 through certmagic), so the member
+      never shares a private key. The alternative — managed DNS that health-checks the
+      origin and swaps a single answer — also works, but reintroduces an external
+      brain; the MVP prefers the client-driven walk.</p></div>
+    <div class="panel"><h2>What is real</h2>
+      <p>Every member card is <b>two separate processes on two ports</b>: the member's
+      ordinary web server (nginx, httpd, IIS — whatever it already runs, labeled on
+      each card) and the <b>wreath-agent daemon</b> beside it; kill either without the
+      other. Bundles are built and <b>Ed25519-signed</b> over RFC 8785 canonical JSON,
+      replicated by polling, verified — signature and monotonic version — before
+      storing, and re-served by peers. The health matrix is the agents' own gossip,
+      not this page's opinion. Timing is compressed: 2-second polls instead of
+      30-plus.</p></div>
+    <div class="panel"><h2>Setup &amp; trust, in one breath</h2>
+      <p>A member generates a keypair; the wreath's <b>signed registry</b> records its
+      public key and endpoints. Publishing = sign + place two static files under
+      <b>/.well-known/wreath/v0/</b> on your own site. Peers replicate but cannot forge:
+      the worst a compromised peer can do is withhold or serve stale — and the matrix
+      above catches both.</p></div>
+  </section>
+</div>
+
+<script>
+"use strict";
+const AL = ["#2a78d6","#eb6834","#1baf7a","#eda100","#e87ba4","#008300","#4a3aa7","#e34948"];
+const AD = ["#3987e5","#d95926","#199e70","#c98500","#d55181","#008300","#9085e9","#e66767"];
+const STATUS = {
+  healthy:     {icon:"✓", cls:"good",     label:"ok"},
+  stale:       {icon:"◷", cls:"warn",     label:"stale"},
+  missing:     {icon:"◌", cls:"serious",  label:"missing"},
+  unreachable: {icon:"⚠", cls:"serious",  label:"down"},
+  invalid:     {icon:"✕", cls:"critical", label:"INVALID"},
+};
+const SEV = ["invalid","unreachable","missing","stale","healthy"]; // worst first
+
+let members = [];         // ordered ids, fixed for the session
+let slots = {};           // id -> palette slot
+let dark = matchMedia("(prefers-color-scheme: dark)").matches;
+matchMedia("(prefers-color-scheme: dark)").addEventListener("change", e => { dark = e.matches; refresh(); });
+const accentOf = id => (dark ? AD : AL)[slots[id] % AL.length];
+const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+function buildCards(state) {
+  members = state.members.map(m => m.id);
+  state.members.forEach((m, i) => slots[m.id] = i);
+  document.getElementById("cards").innerHTML = state.members.map((m, i) => `
+    <article class="card" style="--al:${AL[i % AL.length]};--ad:${AD[i % AD.length]}">
+      <div class="cardhead">
+        <span class="swatch"></span>
+        <div><h3>${esc(m.id)}</h3><div class="org">${esc(m.org)}</div></div>
+        <span class="served" id="served-${esc(m.id)}"></span>
+      </div>
+      <div class="procs" id="procs-${esc(m.id)}"></div>
+      <div class="route" id="route-${esc(m.id)}"></div>
+      <iframe id="frame-${esc(m.id)}" src="/walk/${esc(m.id)}/" title="${esc(m.id)} as a visitor sees it"></iframe>
+      <div class="ctl">
+        <button data-act="origin" data-id="${esc(m.id)}"></button>
+        <button data-act="agent" data-id="${esc(m.id)}"></button>
+        <button data-act="publish" data-id="${esc(m.id)}">publish v+1</button>
+      </div>
+    </article>`).join("");
+}
+
+function procsHTML(m) {
+  const dot = up => `<i class="st ${up ? "good" : "critical"}">●</i>`;
+  return `<span class="mut">two processes on ${esc(m.id)}'s box:</span>
+    <span class="proc" title="the member's ordinary web server — the thing that fails">${dot(m.origin_up)}${esc(m.server)} <span class="addr">${esc(m.origin_addr)}</span></span>
+    <span class="proc" title="the wreath peer agent — a separate daemon beside it">${dot(m.agent_up)}wreath-agent <span class="addr">${esc(m.agent_addr)}</span></span>`;
+}
+
+function routeHTML(state, m) {
+  const eps = [{name:"origin:" + m.id, label:"origin · " + m.server, owner:m.id, up:m.origin_up,
+                rec:"HTTPS 1 .", desc:m.server + " at " + m.origin_addr}];
+  for (const o of state.members) {
+    if (o.id !== m.id) eps.push({name:"agent:" + o.id, label:o.id + " · agent", owner:o.id, up:o.agent_up,
+                rec:"HTTPS 2 wreath." + o.id + ".example.",
+                desc:o.id + "'s wreath-agent at " + o.agent_addr +
+                     " (equal priority — real clients pick randomly; this demo walks in order)"});
+  }
+  const served = m.last_walk && m.last_walk.served_by;
+  return `<span class="rlabel" title="the HTTPS/SVCB record set a browser would walk — see the DNS panel below">HTTPS RRset:</span>` + eps.map((ep, i) =>
+    `<span class="hop${served === ep.name ? " active" : ""}${ep.up ? "" : " dead"}"
+      title="${esc(ep.rec)} — ${esc(ep.desc)} — ${ep.up ? "up" : "down"}">
+      <b>${i + 1}</b><span class="dot" style="background:${accentOf(ep.owner)}"></span>${esc(ep.label)}</span>`
+  ).join(`<span class="arrow">→</span>`);
+}
+
+function servedHTML(m) {
+  const wr = m.last_walk;
+  if (!wr) return `<span class="mut">waiting…</span>`;
+  if (wr.served_by === "none")
+    return `<i class="st critical">✕</i>dark <span class="mut">no answer</span>`;
+  if (wr.served_by === "origin:" + m.id)
+    return `<span class="dot" style="background:${accentOf(m.id)}"></span>origin · ${esc(m.server)} <span class="mut">primary</span>`;
+  const peer = wr.served_by.slice(6);
+  return `<span class="dot" style="background:${accentOf(peer)}"></span>peer ${esc(peer)} <span class="mut">failover</span>`;
+}
+
+function aggregate(state, m, h) {
+  const entries = [];
+  for (const oh of state.health) {
+    if (!oh.report) continue;
+    for (const e of oh.report.entries) {
+      if (e.member === m && e.holder === h) entries.push(e);
+    }
+  }
+  if (!entries.length) return null;
+  const count = {};
+  let version = 0, freshN = 0;
+  for (const e of entries) {
+    count[e.status] = (count[e.status] || 0) + 1;
+    if (e.version > version) version = e.version;
+    if (e.fresh) freshN++;
+  }
+  let status = "healthy", n = 0;
+  for (const st of SEV) { const c = count[st] || 0; if (c > n) { n = c; status = st; } }
+  return {status, version, observers: entries.length, fresh: freshN > entries.length / 2};
+}
+
+function matrixHTML(state) {
+  let html = `<tr><th>bundle of</th>` + state.members.map(h =>
+    `<th><span class="dot" style="background:${accentOf(h.id)}"></span>${esc(h.id)}${h.agent_up ? "" : ` <i class="st serious">⚠</i>`}</th>`).join("") + `</tr>`;
+  for (const m of state.members) {
+    html += `<tr><td><span class="dot" style="background:${accentOf(m.id)}"></span>${esc(m.id)} <span class="mut">v${m.published_version}</span></td>`;
+    for (const h of state.members) {
+      const agg = aggregate(state, m.id, h.id);
+      if (!agg) { html += `<td><span class="mut">—</span></td>`; continue; }
+      const st = STATUS[agg.status] || STATUS.missing;
+      const v = agg.version ? ` <span class="v">v${agg.version}</span>` : "";
+      const title = `${agg.status}${agg.version ? " · v" + agg.version : ""} · ${agg.fresh ? "fresh" : "not fresh"} · seen by ${agg.observers} agent${agg.observers > 1 ? "s" : ""}`;
+      html += `<td><span class="cell" title="${esc(title)}"><i class="st ${st.cls}">${st.icon}</i>${st.label}${v}</span></td>`;
+    }
+    html += `</tr>`;
+  }
+  return html;
+}
+
+// buildDNS renders, for the first member, the real production record
+// set the route strips are simulating — same hostnames as the chip
+// tooltips, documentation-range IPs.
+function buildDNS(state) {
+  const m = state.members[0];
+  const host = `status.${m.id}.example.`;
+  const IPS = ["198.51.100.7","203.0.113.24","192.0.2.130","203.0.113.77",
+               "198.51.100.201","192.0.2.44","203.0.113.9","198.51.100.88"];
+  const peers = state.members.filter(o => o.id !== m.id);
+  const rr = [];
+  rr.push([host, `HTTPS 1 .`, `${m.id}'s own ${m.server}, priority 1`]);
+  peers.forEach((o, i) => rr.push([host, `HTTPS 2 wreath.${o.id}.example.`,
+    i === 0 ? "all peers share priority 2 — clients pick" :
+    i === 1 ? "randomly among equals, spreading outage load" : ""]));
+  rr.push([host, `A     ${IPS[0]}`, `plus plain multi-A records`]);
+  peers.forEach((o, i) => rr.push([host, `A     ${IPS[(i + 1) % IPS.length]}`, i ? "" : "for pre-SVCB clients"]));
+  rr.push([`_acme-challenge.${host}`, `CNAME ${m.id}.acme.wreath.example.`, `DNS-01 delegation: peers get real TLS certs, no key sharing`]);
+  const w1 = Math.max(...rr.map(r => r[0].length)) + 2;
+  const w2 = Math.max(...rr.map(r => r[1].length)) + 2;
+  document.getElementById("dnspre").innerHTML =
+    rr.map(r => esc((r[0].padEnd(w1) + "300 IN " + r[1]).padEnd(w1 + 7 + w2)) +
+                (r[2] ? `<span class="c">; ${esc(r[2])}</span>` : "")).join("\n");
+}
+
+let lastState = null;
+async function refresh() {
+  let state;
+  try {
+    state = await (await fetch("/api/state")).json();
+  } catch (e) {
+    document.getElementById("meta").textContent = "dashboard unreachable — retrying";
+    return;
+  }
+  lastState = state;
+  if (!members.length) buildCards(state);
+  for (const m of state.members) {
+    document.getElementById("procs-" + m.id).innerHTML = procsHTML(m);
+    document.getElementById("route-" + m.id).innerHTML = routeHTML(state, m);
+    document.getElementById("served-" + m.id).innerHTML = servedHTML(m);
+    const [bo, ba] = document.querySelectorAll(`button[data-id="${m.id}"]`);
+    bo.textContent = m.origin_up ? `kill ${m.server}` : `revive ${m.server}`;
+    ba.textContent = m.agent_up ? "stop wreath-agent" : "start wreath-agent";
+  }
+  if (!document.getElementById("dnspre").innerHTML) buildDNS(state);
+  document.getElementById("matrix").innerHTML = matrixHTML(state);
+  document.getElementById("events").innerHTML = state.events.slice().reverse().map(e =>
+    `<li><span class="t">${esc(e.at)}</span>${esc(e.text)}</li>`).join("");
+  const chaos = document.getElementById("chaos");
+  chaos.checked = state.chaos;
+  document.getElementById("meta").textContent =
+    `${state.wreath_id} · ${state.members.length} members · poll ${state.poll} · staleness ${state.staleness} · ${state.now}`;
+}
+
+document.addEventListener("click", async e => {
+  const b = e.target.closest("button[data-act]");
+  if (!b) return;
+  const id = b.dataset.id, act = b.dataset.act;
+  const url = act === "publish" ? `/api/publish/${id}` : `/api/${act}/${id}/toggle`;
+  b.disabled = true;
+  try { await fetch(url, {method:"POST"}); } finally { b.disabled = false; }
+  await refresh();
+  if (act !== "publish") setTimeout(() => bumpFrame(id), 400);
+});
+
+document.getElementById("chaos").addEventListener("change", async () => {
+  await fetch("/api/chaos/toggle", {method:"POST"});
+  refresh();
+});
+
+let tick = 0;
+function bumpFrame(id) {
+  const f = document.getElementById("frame-" + id);
+  if (f) f.src = `/walk/${id}/?t=${++tick}`;
+}
+setInterval(() => { if (!document.hidden) members.forEach(bumpFrame); }, 5000);
+setInterval(() => { if (!document.hidden) refresh(); }, 2000);
+refresh();
+</script>
+</body></html>

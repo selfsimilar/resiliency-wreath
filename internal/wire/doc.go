@@ -1,8 +1,8 @@
-// Copyright 2026 The Resiliency Ring Authors
+// Copyright 2026 The Resiliency Wreath Authors
 // SPDX-License-Identifier: Apache-2.0
 
 // Package wire defines every data structure and byte format that crosses
-// the network between ring participants: manifests, the registry, health
+// the network between wreath participants: manifests, the registry, health
 // reports, well-known URL paths, canonicalization, and signing.
 //
 // This package is the future RFC. Treat every exported type and constant

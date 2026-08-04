@@ -332,3 +332,30 @@ needs no ceremony to change.
   O(N²) per cycle ring-wide; fine at civic scale, revisit if not).
 - Notify authentication (currently unauthenticated hint; abuse = free
   extra polls, rate-limit if it matters).
+
+## Terminology: "ring" → "wreath" — BREAKING wire change (2026-08-03)
+
+- The collective noun is now **wreath** throughout code, docs, and wire:
+  - well-known prefix: `/.well-known/wreath/v0` (was `/.well-known/ring/v0`)
+  - registry field: `wreath_id` (was `ring_id`)
+  - serving headers: `Wreath-Member` / `Wreath-Version` / `Wreath-Holder`
+  - binaries: `wreath-agent`, `wreath-publish`, `wreath-sim`
+- Still v0 with zero deployments and one implementation, so this ships
+  as a rename inside v0, not a path-version bump. Golden fixtures
+  regenerated (`go test ./internal/wire -run Golden -update`); registry
+  canonical bytes and signatures changed (field rename — note JCS key
+  ordering moves `wreath_id` after `version`).
+- **Why**: "ring" was never decided. The founding prompt's simile
+  ("something like a web-ring") was scoped to vetted membership, but
+  drafting promoted the simile's vehicle into the collective noun with
+  no recorded deliberation — the only load-bearing term in the project
+  with no decision-log entry. As a term it misleads the RFC's audience:
+  protocol implementers read "ring" as ordered topology (token ring,
+  Chord, Cassandra; even web-rings had next/prev links) and this
+  protocol is a full mesh. "Wreath" keeps circle-of-membership, adds
+  woven reciprocity (every strand both supports and is supported —
+  the product's differentiator), and sheds the ordering connotation.
+- The product/brand name remains a separate open question; the wire
+  term stays generic per DESIGN §11 (credible neutrality of the spec).
+- Entries above this one retain the historical term; this log is
+  append-only.

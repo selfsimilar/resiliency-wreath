@@ -1,4 +1,4 @@
-// Copyright 2026 The Resiliency Ring Authors
+// Copyright 2026 The Resiliency Wreath Authors
 // SPDX-License-Identifier: Apache-2.0
 
 package wire
@@ -56,7 +56,7 @@ func checkGolden(t *testing.T, name string, got []byte) {
 // goldenKey derives a deterministic keypair so signatures are stable.
 // Test-only; never a pattern for production key generation.
 func goldenKey(name string) (ed25519.PublicKey, ed25519.PrivateKey) {
-	seed := sha256.Sum256([]byte("resiliency-ring golden key: " + name))
+	seed := sha256.Sum256([]byte("resiliency-wreath golden key: " + name))
 	priv := ed25519.NewKeyFromSeed(seed[:])
 	return priv.Public().(ed25519.PublicKey), priv
 }
@@ -115,7 +115,7 @@ func TestGoldenRegistry(t *testing.T) {
 	pubB, _ := goldenKey("member-b")
 
 	reg := &Registry{
-		RingID:    "golden-ring",
+		WreathID:  "golden-wreath",
 		Version:   2,
 		Timestamp: "2026-07-23T00:00:00Z",
 		Members: []Member{

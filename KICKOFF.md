@@ -1,4 +1,4 @@
-# KICKOFF — Civic Resilience Ring: Go reference implementation
+# KICKOFF — Civic Resilience Wreath: Go reference implementation
 
 *This is the working brief for Claude Code. Read `DESIGN.md` first — it is the
 decision record. This file tells you what to build now, in what order, and what
@@ -9,8 +9,8 @@ DESIGN.md wins for rationale.*
 
 ## Mission
 
-Build the **Go reference implementation** of the ring protocol: peer agent +
-publisher CLI + file-based registry. Then run a **simulated multi-member ring**
+Build the **Go reference implementation** of the wreath protocol: peer agent +
+publisher CLI + file-based registry. Then run a **simulated multi-member wreath**
 end-to-end to iron out protocol kinks. The RFC will be **distilled from this
 working code afterward** — so keep wire formats isolated and documented as you
 go, but do NOT write the spec first.
@@ -45,13 +45,13 @@ go, but do NOT write the spec first.
 ## Repo shape (suggested, adjust with reason)
 
 ```
-ring/
+wreath/
 ├── DESIGN.md               # provided
 ├── KICKOFF.md              # this file
 ├── cmd/
-│   ├── ring-agent/         # the peer agent daemon
-│   ├── ring-publish/       # publisher CLI: build, sign, push
-│   └── ring-sim/           # simulation harness (see Milestone 4)
+│   ├── wreath-agent/         # the peer agent daemon
+│   ├── wreath-publish/       # publisher CLI: build, sign, push
+│   └── wreath-sim/           # simulation harness (see Milestone 4)
 ├── internal/
 │   ├── wire/               # ALL wire-format types + canonicalization + sign/verify.
 │   │                       #   This package is the future RFC. Keep it dependency-light,
@@ -75,19 +75,19 @@ extraction cheap later.
 ### M1 — Bundle format, signing, verification
 - `wire`: `Manifest` (member ID, monotonic version, timestamp, file list with
   SHA-256 hashes, optional metadata), canonicalization, Ed25519 sign/verify.
-- `ring-publish`: `init` (keygen), `build <dir>` (bundle = manifest + files as
+- `wreath-publish`: `init` (keygen), `build <dir>` (bundle = manifest + files as
   a tar or content-addressed dir), `sign`, and `verify` subcommands.
 - Golden-file tests incl. cross-checks: a manifest signed once must verify from
   its serialized form byte-for-byte; mutate any field → fail; replay older
   version → fail at store level (M2).
-- **Acceptance:** `ring-publish build && ring-publish verify` round-trips; a
+- **Acceptance:** `wreath-publish build && wreath-publish verify` round-trips; a
   tampered bundle and a rolled-back version are both rejected with distinct
   errors.
 
 ### M2 — Agent: store, poll, serve
 - `store`: cache bundles on disk, enforce anti-rollback, atomic swap on update.
 - `fetch`: poll each registry member's
-  `/.well-known/ring/v0/bundle` (+ detached sig / manifest endpoint) on an
+  `/.well-known/wreath/v0/bundle` (+ detached sig / manifest endpoint) on an
   interval; verify before store.
 - `serve`: HTTP server exposing (a) each held bundle at a per-member vhost/path
   — this is the failover + always-on fallback surface; (b) the agent's own
@@ -101,7 +101,7 @@ extraction cheap later.
 ### M3 — Probe + health
 - `probe`: each agent periodically checks each peer's copy of each bundle
   (reachable / signature / freshness vs. the highest version it knows) and
-  exposes a health report at `/.well-known/ring/v0/health` (JSON matrix:
+  exposes a health report at `/.well-known/wreath/v0/health` (JSON matrix:
   member × holder → {version, fresh, last_seen}).
 - Staleness tolerance + poll interval configurable, sane defaults, documented.
 - **Acceptance:** the health matrix correctly distinguishes: healthy peer,
@@ -109,7 +109,7 @@ extraction cheap later.
   data.
 
 ### M4 — Simulation harness (the "iron out kinks" deliverable)
-- `ring-sim`: spins up N agents + M fake member origins **in one process**
+- `wreath-sim`: spins up N agents + M fake member origins **in one process**
   (goroutines, real HTTP on loopback ports), drives scripted scenarios, and
   asserts on outcomes. Scenarios to include at minimum:
   1. steady state — all fresh;
@@ -124,7 +124,7 @@ extraction cheap later.
 - **DNS swing is simulated, not real:** model the control plane as "which
   endpoint does the simulated client try, in order" (the multi-A/HTTPS-record
   client walk from DESIGN §5). No real DNS provider integration in MVP.
-- **Acceptance:** `go test ./...` runs all scenarios green; `ring-sim run
+- **Acceptance:** `go test ./...` runs all scenarios green; `wreath-sim run
   --scenario=...` runs them interactively with readable event logs. This
   harness is the demo AND the protocol test bed.
 
@@ -148,7 +148,7 @@ health JSON + sim logs are the only observability MVP needs.
   record them in `WIRE-NOTES.md` from M1 on.
 - Prefer boring code over clever code everywhere; this codebase's audience
   includes future auditors from small government IT shops.
-- Version every endpoint path (`/ring/v0/...`) from the start.
+- Version every endpoint path (`/wreath/v0/...`) from the start.
 - When a design question isn't answered by DESIGN.md or this file, make the
   simple choice, note it in `WIRE-NOTES.md`, and keep moving — the sim harness
   exists precisely to invalidate wrong guesses cheaply.

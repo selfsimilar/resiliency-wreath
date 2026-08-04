@@ -1,4 +1,4 @@
-module github.com/selfsimilar/resiliency-ring
+module github.com/selfsimilar/resiliency-wreath
 
 go 1.26.5
 

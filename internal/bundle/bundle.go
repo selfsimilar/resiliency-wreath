@@ -1,4 +1,4 @@
-// Copyright 2026 The Resiliency Ring Authors
+// Copyright 2026 The Resiliency Wreath Authors
 // SPDX-License-Identifier: Apache-2.0
 
 // Package bundle builds, writes, and verifies the on-disk bundle layout:
@@ -24,7 +24,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/selfsimilar/resiliency-ring/internal/wire"
+	"github.com/selfsimilar/resiliency-wreath/internal/wire"
 )
 
 // Build walks siteDir and produces a manifest plus content-addressed

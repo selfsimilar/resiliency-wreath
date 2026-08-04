@@ -1,4 +1,4 @@
-// Copyright 2026 The Resiliency Ring Authors
+// Copyright 2026 The Resiliency Wreath Authors
 // SPDX-License-Identifier: Apache-2.0
 
 package sim

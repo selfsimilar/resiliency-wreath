@@ -1,4 +1,4 @@
-// Copyright 2026 The Resiliency Ring Authors
+// Copyright 2026 The Resiliency Wreath Authors
 // SPDX-License-Identifier: Apache-2.0
 
 package wire
@@ -196,7 +196,7 @@ func fixtureRegistry(t *testing.T) *Registry {
 	pubA, _ := testKey(t, "member-a")
 	pubB, _ := testKey(t, "member-b")
 	return &Registry{
-		RingID:    "test-ring",
+		WreathID:  "test-wreath",
 		Version:   1,
 		Timestamp: "2026-07-23T00:00:00Z",
 		Members: []Member{

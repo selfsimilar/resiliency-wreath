@@ -1,15 +1,15 @@
-// Copyright 2026 The Resiliency Ring Authors
+// Copyright 2026 The Resiliency Wreath Authors
 // SPDX-License-Identifier: Apache-2.0
 
 package sim_test
 
 // M4 acceptance: `go test ./...` runs every scenario green. The same
-// scenarios run interactively via `ring-sim run -scenario=<name>`.
+// scenarios run interactively via `wreath-sim run -scenario=<name>`.
 
 import (
 	"testing"
 
-	"github.com/selfsimilar/resiliency-ring/internal/sim"
+	"github.com/selfsimilar/resiliency-wreath/internal/sim"
 )
 
 func TestScenarios(t *testing.T) {

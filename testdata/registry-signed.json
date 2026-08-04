@@ -1,23 +1,23 @@
 {
   "registry": {
-    "ring_id": "golden-ring",
+    "wreath_id": "golden-wreath",
     "version": 2,
     "timestamp": "2026-07-23T00:00:00Z",
     "members": [
       {
         "id": "member-a",
-        "public_key": "dYQQbQ7x9+cArC7mmXJPeRwTRKcR6qJsMV9/9+U00kc=",
+        "public_key": "BJP1pApBk1JlhAqRt3Qb5TIeOqZtpr6k4iZIxRQydhk=",
         "origin": "http://127.0.0.1:7001",
         "agent": "http://127.0.0.1:8001"
       },
       {
         "id": "member-b",
-        "public_key": "KGt9pWywyEI/HWDQClJNneoLoNuuN6pB1JQIh3BHYaU=",
+        "public_key": "Eah7UcLQu89IvCtx4DQf3JEu3O4iRwTpHIQhskm0S6w=",
         "origin": "http://127.0.0.1:7002",
         "agent": "http://127.0.0.1:8002",
         "fallback_host": "fallback.member-b.example"
       }
     ]
   },
-  "signature": "TUIheCXor9DTNijGslVUbe3aZSJMkACi2pa1kk+MDXVVJ0pncK4b5Gsu+6iXos9/jk63+HvBB3n/7BLwjqGjCg=="
+  "signature": "ix8JZvljXW3LLVCz9T4M4tlm47EECzQxGGvh2zbEx3C6F06Y6m0Ggb9hGEiWtpJlpwu/lqsB5kZNB1ynOYOvAg=="
 }

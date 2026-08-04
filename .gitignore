@@ -1,7 +1,7 @@
 # Built binaries
-/ring-agent
-/ring-publish
-/ring-sim
+/wreath-agent
+/wreath-publish
+/wreath-sim
 /bin/
 /dist/
 

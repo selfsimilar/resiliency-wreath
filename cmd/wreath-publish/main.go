@@ -1,7 +1,7 @@
-// Copyright 2026 The Resiliency Ring Authors
+// Copyright 2026 The Resiliency Wreath Authors
 // SPDX-License-Identifier: Apache-2.0
 
-// Command ring-publish is the publisher client: build, sign, verify, and
+// Command wreath-publish is the publisher client: build, sign, verify, and
 // push a member's bundle. See KICKOFF.md; the offline incident-signing
 // tool is a deferred mode of this client, not a separate artifact.
 package main
@@ -20,12 +20,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/selfsimilar/resiliency-ring/internal/bundle"
-	"github.com/selfsimilar/resiliency-ring/internal/keyfile"
-	"github.com/selfsimilar/resiliency-ring/internal/wire"
+	"github.com/selfsimilar/resiliency-wreath/internal/bundle"
+	"github.com/selfsimilar/resiliency-wreath/internal/keyfile"
+	"github.com/selfsimilar/resiliency-wreath/internal/wire"
 )
 
-const usageText = `ring-publish — build, sign, verify, and push ring bundles
+const usageText = `wreath-publish — build, sign, verify, and push wreath bundles
 
 Subcommands:
   init             generate a member keypair
@@ -36,7 +36,7 @@ Subcommands:
   registry-sign    sign a registry payload with the registry root key
   registry-verify  verify a signed registry file
 
-Run 'ring-publish <subcommand> -h' for flags.
+Run 'wreath-publish <subcommand> -h' for flags.
 verify exit codes: 0 ok, 2 bad signature, 3 content hash mismatch, 1 other error.
 `
 
@@ -65,11 +65,11 @@ func main() {
 		fmt.Print(usageText)
 		return
 	default:
-		fmt.Fprintf(os.Stderr, "ring-publish: unknown subcommand %q\n\n%s", os.Args[1], usageText)
+		fmt.Fprintf(os.Stderr, "wreath-publish: unknown subcommand %q\n\n%s", os.Args[1], usageText)
 		os.Exit(1)
 	}
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "ring-publish: %v\n", err)
+		fmt.Fprintf(os.Stderr, "wreath-publish: %v\n", err)
 		switch {
 		case errors.Is(err, wire.ErrBadSignature):
 			os.Exit(2)
@@ -342,7 +342,7 @@ func cmdRegistrySign(args []string) error {
 	if err := os.WriteFile(*out, env, 0o644); err != nil {
 		return err
 	}
-	fmt.Printf("signed registry %s v%d (%d members) -> %s\n", r.RingID, r.Version, len(r.Members), *out)
+	fmt.Printf("signed registry %s v%d (%d members) -> %s\n", r.WreathID, r.Version, len(r.Members), *out)
 	return nil
 }
 
@@ -367,7 +367,7 @@ func cmdRegistryVerify(args []string) error {
 	if err != nil {
 		return err
 	}
-	fmt.Printf("OK: ring %s v%d, %d members\n", r.RingID, r.Version, len(r.Members))
+	fmt.Printf("OK: wreath %s v%d, %d members\n", r.WreathID, r.Version, len(r.Members))
 	for _, m := range r.Members {
 		fmt.Printf("  %-20s origin=%s agent=%s\n", m.ID, m.Origin, m.Agent)
 	}

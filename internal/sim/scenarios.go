@@ -1,11 +1,11 @@
-// Copyright 2026 The Resiliency Ring Authors
+// Copyright 2026 The Resiliency Wreath Authors
 // SPDX-License-Identifier: Apache-2.0
 
 package sim
 
-// The seven KICKOFF M4 scenarios. Each builds its own ring, drives a
+// The seven KICKOFF M4 scenarios. Each builds its own wreath, drives a
 // scripted failure, and asserts on outcomes — go test runs them all;
-// ring-sim runs them interactively with the event log streaming.
+// wreath-sim runs them interactively with the event log streaming.
 
 import (
 	"crypto/sha256"
@@ -15,7 +15,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/selfsimilar/resiliency-ring/internal/wire"
+	"github.com/selfsimilar/resiliency-wreath/internal/wire"
 )
 
 // Scenario is one scripted run.
@@ -52,14 +52,14 @@ func page(member, version string) map[string]string {
 	return map[string]string{"index.html": fmt.Sprintf("%s %s home page", member, version)}
 }
 
-func newStandardRing(log io.Writer, verbose bool, specs ...MemberSpec) (*Ring, error) {
+func newStandardWreath(log io.Writer, verbose bool, specs ...MemberSpec) (*Wreath, error) {
 	if len(specs) == 0 {
 		specs = []MemberSpec{{ID: "alpha"}, {ID: "bravo"}, {ID: "charlie"}}
 	}
-	return NewRing(Config{Members: specs, Log: log, Verbose: verbose})
+	return NewWreath(Config{Members: specs, Log: log, Verbose: verbose})
 }
 
-func publishAllV1(r *Ring) error {
+func publishAllV1(r *Wreath) error {
 	for _, id := range r.RealMembers() {
 		if err := r.Publish(id, 1, page(id, "v1"), false); err != nil {
 			return err
@@ -76,7 +76,7 @@ func publishAllV1(r *Ring) error {
 // --- 1. steady state ------------------------------------------------
 
 func runSteadyState(log io.Writer, verbose bool) error {
-	r, err := newStandardRing(log, verbose)
+	r, err := newStandardWreath(log, verbose)
 	if err != nil {
 		return err
 	}
@@ -113,7 +113,7 @@ func runSteadyState(log io.Writer, verbose bool) error {
 // --- 2. origin dies -> fallback everywhere ---------------------------
 
 func runOriginDown(log io.Writer, verbose bool) error {
-	r, err := newStandardRing(log, verbose)
+	r, err := newStandardWreath(log, verbose)
 	if err != nil {
 		return err
 	}
@@ -148,7 +148,7 @@ func runOriginDown(log io.Writer, verbose bool) error {
 // --- 3. origin dies mid-rollout -> peers backfill ---------------------
 
 func runMidRollout(log io.Writer, verbose bool) error {
-	r, err := newStandardRing(log, verbose)
+	r, err := newStandardWreath(log, verbose)
 	if err != nil {
 		return err
 	}
@@ -183,7 +183,7 @@ func runMidRollout(log io.Writer, verbose bool) error {
 // --- 4. tampered peer -------------------------------------------------
 
 func runTamperedPeer(log io.Writer, verbose bool) error {
-	r, err := newStandardRing(log, verbose,
+	r, err := newStandardWreath(log, verbose,
 		MemberSpec{ID: "alpha"}, MemberSpec{ID: "bravo"}, MemberSpec{ID: "charlie"},
 		MemberSpec{ID: "mallory", Fake: true})
 	if err != nil {
@@ -240,7 +240,7 @@ func runTamperedPeer(log io.Writer, verbose bool) error {
 // --- 5. rollback peer --------------------------------------------------
 
 func runRollbackPeer(log io.Writer, verbose bool) error {
-	r, err := newStandardRing(log, verbose,
+	r, err := newStandardWreath(log, verbose,
 		MemberSpec{ID: "alpha"}, MemberSpec{ID: "bravo"}, MemberSpec{ID: "charlie"},
 		MemberSpec{ID: "mallory", Fake: true})
 	if err != nil {
@@ -311,7 +311,7 @@ func runRollbackPeer(log io.Writer, verbose bool) error {
 // --- 6. cold cache -----------------------------------------------------
 
 func runColdCache(log io.Writer, verbose bool) error {
-	r, err := newStandardRing(log, verbose)
+	r, err := newStandardWreath(log, verbose)
 	if err != nil {
 		return err
 	}
@@ -352,7 +352,7 @@ func runColdCache(log io.Writer, verbose bool) error {
 // --- 7. partition + heal ------------------------------------------------
 
 func runPartition(log io.Writer, verbose bool) error {
-	r, err := newStandardRing(log, verbose,
+	r, err := newStandardWreath(log, verbose,
 		MemberSpec{ID: "alpha"}, MemberSpec{ID: "bravo"},
 		MemberSpec{ID: "charlie"}, MemberSpec{ID: "delta"})
 	if err != nil {

@@ -1,7 +1,7 @@
-// Copyright 2026 The Resiliency Ring Authors
+// Copyright 2026 The Resiliency Wreath Authors
 // SPDX-License-Identifier: Apache-2.0
 
-// Command ring-agent is the peer agent daemon: replicate, verify,
+// Command wreath-agent is the peer agent daemon: replicate, verify,
 // serve, probe (DESIGN §6). Co-tenant deployment unit; see
 // internal/agent for the composition.
 //
@@ -19,15 +19,15 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/selfsimilar/resiliency-ring/internal/agent"
-	"github.com/selfsimilar/resiliency-ring/internal/keyfile"
+	"github.com/selfsimilar/resiliency-wreath/internal/agent"
+	"github.com/selfsimilar/resiliency-wreath/internal/keyfile"
 )
 
 const exampleConfig = `{
   "member_id": "example-org",
-  "registry": "/etc/ring/registry.json",
-  "registry_pub_file": "/etc/ring/root.pub",
-  "data_dir": "/var/lib/ring",
+  "registry": "/etc/wreath/registry.json",
+  "registry_pub_file": "/etc/wreath/root.pub",
+  "data_dir": "/var/lib/wreath",
   "listen": ":8443",
   "poll": "30s",
   "probe": "60s",
@@ -86,7 +86,7 @@ func main() {
 		cfg.Listen = "127.0.0.1:8100"
 	}
 	if cfg.MemberID == "" || cfg.Registry == "" || cfg.RegistryPubFile == "" || cfg.DataDir == "" {
-		fmt.Fprintln(os.Stderr, "ring-agent: member_id, registry, registry_pub_file, and data_dir are required (via -config or flags)")
+		fmt.Fprintln(os.Stderr, "wreath-agent: member_id, registry, registry_pub_file, and data_dir are required (via -config or flags)")
 		flag.Usage()
 		os.Exit(1)
 	}
@@ -129,11 +129,11 @@ func main() {
 	if err := a.Run(ctx); err != nil {
 		fatal(err)
 	}
-	log.Info("ring-agent: shut down cleanly")
+	log.Info("wreath-agent: shut down cleanly")
 }
 
 func fatal(err error) {
-	fmt.Fprintf(os.Stderr, "ring-agent: %v\n", err)
+	fmt.Fprintf(os.Stderr, "wreath-agent: %v\n", err)
 	os.Exit(1)
 }
 

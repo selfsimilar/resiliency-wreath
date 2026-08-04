@@ -1,4 +1,4 @@
-// Copyright 2026 The Resiliency Ring Authors
+// Copyright 2026 The Resiliency Wreath Authors
 // SPDX-License-Identifier: Apache-2.0
 
 // Package probe implements data-plane liveness (DESIGN §9, KICKOFF M3):
@@ -26,8 +26,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/selfsimilar/resiliency-ring/internal/store"
-	"github.com/selfsimilar/resiliency-ring/internal/wire"
+	"github.com/selfsimilar/resiliency-wreath/internal/store"
+	"github.com/selfsimilar/resiliency-wreath/internal/wire"
 )
 
 // Config wires a Prober; fields mirror fetch.Config.

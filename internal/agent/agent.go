@@ -1,4 +1,4 @@
-// Copyright 2026 The Resiliency Ring Authors
+// Copyright 2026 The Resiliency Wreath Authors
 // SPDX-License-Identifier: Apache-2.0
 
 // Package agent composes store + registry + fetch + serve (+ probe from
@@ -18,11 +18,11 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/selfsimilar/resiliency-ring/internal/fetch"
-	"github.com/selfsimilar/resiliency-ring/internal/probe"
-	"github.com/selfsimilar/resiliency-ring/internal/registry"
-	"github.com/selfsimilar/resiliency-ring/internal/serve"
-	"github.com/selfsimilar/resiliency-ring/internal/store"
+	"github.com/selfsimilar/resiliency-wreath/internal/fetch"
+	"github.com/selfsimilar/resiliency-wreath/internal/probe"
+	"github.com/selfsimilar/resiliency-wreath/internal/registry"
+	"github.com/selfsimilar/resiliency-wreath/internal/serve"
+	"github.com/selfsimilar/resiliency-wreath/internal/store"
 )
 
 // Config for one agent. MemberID must appear in the registry.
@@ -41,7 +41,7 @@ type Config struct {
 	// injects partition-aware transports here).
 	Client *http.Client
 
-	// TLS, if set, wraps the listener (e.g. certmagic in ring-agent).
+	// TLS, if set, wraps the listener (e.g. certmagic in wreath-agent).
 	// Kept behind an interface so core packages stay stdlib-only and
 	// the sim never touches ACME.
 	TLS TLSProvider

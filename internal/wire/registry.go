@@ -1,4 +1,4 @@
-// Copyright 2026 The Resiliency Ring Authors
+// Copyright 2026 The Resiliency Wreath Authors
 // SPDX-License-Identifier: Apache-2.0
 
 package wire
@@ -11,7 +11,7 @@ import (
 	"time"
 )
 
-// Member is one ring participant as listed in the registry.
+// Member is one wreath participant as listed in the registry.
 //
 // Origin is the base URL of the member's own site, which must expose the
 // origin well-known paths (see paths.go). Agent is the base URL of the
@@ -28,12 +28,12 @@ type Member struct {
 	FallbackHost string `json:"fallback_host,omitempty"`
 }
 
-// Registry is the signed payload listing the ring's membership: the thin
-// "IX of the ring". It is distributed as a file, synced out-of-band
+// Registry is the signed payload listing the wreath's membership: the thin
+// "IX of the wreath". It is distributed as a file, synced out-of-band
 // (e.g. git); there is no registry server. Version is monotonic with the
 // same semantics as a manifest version.
 type Registry struct {
-	RingID    string   `json:"ring_id"`
+	WreathID  string   `json:"wreath_id"`
 	Version   uint64   `json:"version"`
 	Timestamp string   `json:"timestamp"`
 	Members   []Member `json:"members"`
@@ -61,8 +61,8 @@ func validBaseURL(s string) error {
 
 // Validate checks structural validity. It does not check signatures.
 func (r *Registry) Validate() error {
-	if !ValidMemberID(r.RingID) {
-		return fmt.Errorf("wire: invalid ring_id %q", r.RingID)
+	if !ValidMemberID(r.WreathID) {
+		return fmt.Errorf("wire: invalid wreath_id %q", r.WreathID)
 	}
 	if r.Version < 1 || r.Version > MaxSafeInteger {
 		return fmt.Errorf("wire: registry version %d outside 1..2^53-1", r.Version)

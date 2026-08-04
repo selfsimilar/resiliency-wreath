@@ -1,4 +1,4 @@
-// Copyright 2026 The Resiliency Ring Authors
+// Copyright 2026 The Resiliency Wreath Authors
 // SPDX-License-Identifier: Apache-2.0
 
 // Package keyfile reads and writes Ed25519 key files. Local formats,
@@ -14,7 +14,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/selfsimilar/resiliency-ring/internal/wire"
+	"github.com/selfsimilar/resiliency-wreath/internal/wire"
 )
 
 // WritePair writes priv's seed to path (0600) and the public key to

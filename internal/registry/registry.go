@@ -1,8 +1,8 @@
-// Copyright 2026 The Resiliency Ring Authors
+// Copyright 2026 The Resiliency Wreath Authors
 // SPDX-License-Identifier: Apache-2.0
 
 // Package registry loads and watches the signed registry file — the
-// thin "IX of the ring" (DESIGN §6). The file is synced out-of-band
+// thin "IX of the wreath" (DESIGN §6). The file is synced out-of-band
 // (git, rsync, USB stick; the protocol does not care) and verified
 // against the registry root public key on every load. Registry versions
 // are monotonic: a reload that presents a LOWER version than the one in
@@ -18,7 +18,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/selfsimilar/resiliency-ring/internal/wire"
+	"github.com/selfsimilar/resiliency-wreath/internal/wire"
 )
 
 // Watcher holds the currently-valid registry and reloads the backing
@@ -98,7 +98,7 @@ func (w *Watcher) Reload() error {
 		return fmt.Errorf("registry %s: version rollback v%d -> v%d rejected", w.path, w.reg.Version, reg.Version)
 	}
 	if reg.Version > w.reg.Version {
-		w.log.Info("registry: updated", "ring", reg.RingID, "version", reg.Version, "members", len(reg.Members))
+		w.log.Info("registry: updated", "wreath", reg.WreathID, "version", reg.Version, "members", len(reg.Members))
 	}
 	w.reg = reg
 	w.mtime = fi.ModTime()

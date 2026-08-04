@@ -1,4 +1,4 @@
-// Copyright 2026 The Resiliency Ring Authors
+// Copyright 2026 The Resiliency Wreath Authors
 // SPDX-License-Identifier: Apache-2.0
 
 package sim
@@ -50,7 +50,7 @@ func (pt *PartitionTable) block(a, b string) {
 	pt.blocked[b][a] = true
 }
 
-// SetGroups partitions the ring into the given groups: traffic between
+// SetGroups partitions the wreath into the given groups: traffic between
 // different groups is blocked, traffic within a group flows. Replaces
 // any previous partition.
 func (pt *PartitionTable) SetGroups(groups ...[]string) {

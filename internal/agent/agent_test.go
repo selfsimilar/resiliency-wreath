@@ -1,4 +1,4 @@
-// Copyright 2026 The Resiliency Ring Authors
+// Copyright 2026 The Resiliency Wreath Authors
 // SPDX-License-Identifier: Apache-2.0
 
 package agent_test
@@ -23,10 +23,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/selfsimilar/resiliency-ring/internal/agent"
-	"github.com/selfsimilar/resiliency-ring/internal/bundle"
-	"github.com/selfsimilar/resiliency-ring/internal/serve"
-	"github.com/selfsimilar/resiliency-ring/internal/wire"
+	"github.com/selfsimilar/resiliency-wreath/internal/agent"
+	"github.com/selfsimilar/resiliency-wreath/internal/bundle"
+	"github.com/selfsimilar/resiliency-wreath/internal/serve"
+	"github.com/selfsimilar/resiliency-wreath/internal/wire"
 )
 
 func testLogger() *slog.Logger {
@@ -128,7 +128,7 @@ func TestM2Acceptance(t *testing.T) {
 	agentURL := func(ln net.Listener) string { return "http://" + ln.Addr().String() }
 
 	reg := &wire.Registry{
-		RingID:    "test-ring",
+		WreathID:  "test-wreath",
 		Version:   1,
 		Timestamp: time.Now().UTC().Format(time.RFC3339),
 		Members: []wire.Member{

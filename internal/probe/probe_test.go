@@ -1,4 +1,4 @@
-// Copyright 2026 The Resiliency Ring Authors
+// Copyright 2026 The Resiliency Wreath Authors
 // SPDX-License-Identifier: Apache-2.0
 
 package probe_test
@@ -22,10 +22,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/selfsimilar/resiliency-ring/internal/probe"
-	"github.com/selfsimilar/resiliency-ring/internal/serve"
-	"github.com/selfsimilar/resiliency-ring/internal/store"
-	"github.com/selfsimilar/resiliency-ring/internal/wire"
+	"github.com/selfsimilar/resiliency-wreath/internal/probe"
+	"github.com/selfsimilar/resiliency-wreath/internal/serve"
+	"github.com/selfsimilar/resiliency-wreath/internal/store"
+	"github.com/selfsimilar/resiliency-wreath/internal/wire"
 )
 
 func derivedKey(name string) (ed25519.PublicKey, ed25519.PrivateKey) {
@@ -106,7 +106,7 @@ func TestM3HealthMatrix(t *testing.T) {
 		{ID: "foxtrot", PublicKey: wire.EncodePublicKey(mustPub(t, "foxtrot")), Origin: dummyOrigin, Agent: hMissing.URL},
 		{ID: "echo", PublicKey: wire.EncodePublicKey(mustPub(t, "echo")), Origin: dummyOrigin, Agent: "http://127.0.0.1:2"},
 	}
-	reg := &wire.Registry{RingID: "probe-ring", Version: 1, Timestamp: "2026-07-23T00:00:00Z", Members: members}
+	reg := &wire.Registry{WreathID: "probe-wreath", Version: 1, Timestamp: "2026-07-23T00:00:00Z", Members: members}
 
 	st, err := store.Open(t.TempDir(), quietLogger())
 	if err != nil {

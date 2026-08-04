@@ -1,4 +1,4 @@
-// Copyright 2026 The Resiliency Ring Authors
+// Copyright 2026 The Resiliency Wreath Authors
 // SPDX-License-Identifier: Apache-2.0
 
 package agent
@@ -6,7 +6,7 @@ package agent
 import "net"
 
 // TLSProvider wraps a plain TCP listener in TLS. The one production
-// implementation lives in cmd/ring-agent (certmagic/ACME); tests and
+// implementation lives in cmd/wreath-agent (certmagic/ACME); tests and
 // the simulation run plain HTTP. Deployment concern, not protocol:
 // nothing in the wire formats changes when TLS is on.
 type TLSProvider interface {

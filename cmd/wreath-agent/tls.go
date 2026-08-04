@@ -1,4 +1,4 @@
-// Copyright 2026 The Resiliency Ring Authors
+// Copyright 2026 The Resiliency Wreath Authors
 // SPDX-License-Identifier: Apache-2.0
 
 package main
@@ -10,7 +10,7 @@ import (
 	"net"
 
 	"github.com/caddyserver/certmagic"
-	"github.com/selfsimilar/resiliency-ring/internal/agent"
+	"github.com/selfsimilar/resiliency-wreath/internal/agent"
 )
 
 // certmagicTLS implements agent.TLSProvider with automatic Let's

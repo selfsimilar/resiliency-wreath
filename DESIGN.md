@@ -1,14 +1,14 @@
-# Civic Resilience Ring — Design & Decision Record
+# Civic Resilience Wreath — Design & Decision Record
 
 *Status: living design doc. This is the reference context for the Go reference
 implementation. It captures decisions made so far; it is not itself the RFC —
 the RFC will be **distilled from the working Go implementation** (see §8).*
 
-**One-liner:** A vetted web-ring in which member organizations dedicate a small
-slice of compute/storage to serving each other's **signed, static "lights-on"
-page** when a member's own site goes dark. Aimed first at municipalities and
-non-profits whose fallback content carries no sensitive information. Pooled,
-reciprocal failover — mutual aid for uptime.
+**One-liner:** A vetted **wreath** of member organizations, each dedicating a
+small slice of compute/storage to serving the others' **signed, static
+"lights-on" page** when a member's own site goes dark. Aimed first at
+municipalities and non-profits whose fallback content carries no sensitive
+information. Pooled, reciprocal failover — mutual aid for uptime.
 
 ---
 
@@ -29,7 +29,7 @@ signal. The saving grace is that the **cost is tiny**, so it's cheap insurance
 against a class of events that hits every org eventually.
 
 Strategic note: as an add-on to a data-sovereignty / NextCloud-migration
-consultancy, the ring is **migration de-risking** — it directly answers the #1
+consultancy, the wreath is **migration de-risking** — it directly answers the #1
 objection to self-hosting ("Microsoft has a 99.9% SLA and an ops army; if we
 self-host and it goes down, it's on us"). An *open* resilience layer is also
 coherent with the anti-lock-in sovereignty thesis in a way a proprietary one
@@ -59,7 +59,7 @@ info need be shared" falls out for free rather than being engineered.
 
 ## 2. When it's useful (scenario taxonomy)
 
-Organizing principle: **decorrelation.** The ring is valuable to the degree that
+Organizing principle: **decorrelation.** The wreath is valuable to the degree that
 whatever killed the site did *not* also kill the citizen's ability to reach it.
 
 | Why the site went dark | Site down? | Citizens reachable? | Fit | Mechanism |
@@ -79,7 +79,7 @@ battery/generator backup + phone batteries), so "reachable citizens" ≈ "anyone
 with a charged phone and a working tower," not "generator + Starlink households."
 This is *why* the bundle must be tiny, static, and JS-light: so it arrives over a
 congested cellular link. Where usefulness ends (cell towers depleted, prolonged):
-that regime belongs to WEA/IPAWS + NOAA radio; the ring should not pretend to
+that regime belongs to WEA/IPAWS + NOAA radio; the wreath should not pretend to
 serve "civilization is down."
 
 ---
@@ -106,7 +106,7 @@ Failover and surge are **not the same mechanism.**
 - Each member publishes a **signed static bundle**. Peers replicate but
   **cannot forge** it. Worst a bad peer can do is serve *stale* content or
   withhold it — never fabricate.
-- The shared key is **membership/authentication** into the ring, *not* "act as
+- The shared key is **membership/authentication** into the wreath, *not* "act as
   me."
 - Use a **delegated, revocable incident-signing subkey** so field staff can post
   updates without the root key (blast-radius containment).
@@ -148,7 +148,7 @@ fallback is just "we're up, here's the info."
 **DNS onboarding & cert custody (see also §8):** a one-time **delegation** of a
 subdomain — full `NS` delegation of e.g. `status.countyX.gov`, or the lighter
 `CNAME` delegation of just `_acme-challenge.status.countyX.gov` (acme-dns
-pattern) — lets the ring automate failover records *and* obtain TLS certs via
+pattern) — lets the wreath automate failover records *and* obtain TLS certs via
 DNS-01 **without the member ever sharing a private key**. Closest thing to
 turn-key DNS; still one manual one-time step (honest asterisk).
 
@@ -158,7 +158,7 @@ turn-key DNS; still one manual one-time step (honest asterisk).
 
 **Three components:**
 
-1. **Registry** — the thin "IX of the ring." A small **signed manifest** everyone
+1. **Registry** — the thin "IX of the wreath." A small **signed manifest** everyone
    syncs: member list, public keys, bundle endpoints, replication assignments,
    DNS fallback targets. MVP form: a signed JSON file (e.g., in a git repo). It is
    the source of truth for "who backs up whom."
@@ -172,7 +172,7 @@ turn-key DNS; still one manual one-time step (honest asterisk).
 
 **Distribution = pull-based poll + optional push-notify.** Each agent periodically
 polls the registry and each member's canonical bundle endpoint (e.g.
-`https://countyX.gov/.well-known/ring/bundle` + detached signature); if the
+`https://countyX.gov/.well-known/wreath/bundle` + detached signature); if the
 version incremented and the signature verifies, fetch and cache. Pull is
 firewall-friendly (agents reach *out*) and self-healing (an agent that was down
 catches up on next poll). The publisher may additionally ping "new version,
@@ -339,20 +339,20 @@ measurable membership criteria + enforced symmetry + credible, revocable
 dependence** — and broke where symmetry broke (CDNs/hyperscalers shattered the
 traffic-ratio assumption → paid peering).
 
-Transferable rules for the ring:
+Transferable rules for the wreath:
 
 - **Vet on demonstrated capability** to keep others' lights on (uptime, capacity,
   operational maturity), not goodwill. Objective, hard-to-game criteria.
 - **Geographic / infrastructural diversity is a hard requirement** — one rule,
   two payoffs: prevents gaming *and* prevents correlated failure (same grid / ISP
-  / cloud region = the ring saves nothing).
+  / cloud region = the wreath saves nothing).
 - **Symmetric-contribution rule** or someone becomes a net drain. **Design an
   accounting hook from day one** — if some members are heavy *consumers* of
   fallback capacity and others heavy *providers*, pure reciprocity strains just
   like it did for the internet.
 - **Enforcement = graceful degradation, not a binary "de-peering" nuke** (which
   hurts innocent users). A bad member's privileges decay smoothly.
-- **A thin neutral coordination layer** (the registry, the "IX of the ring") beats
+- **A thin neutral coordination layer** (the registry, the "IX of the wreath") beats
   O(n²) bilateral arrangements. Handshake-level informality + easy exit may beat
   heavy contracts.
 - **Credible neutrality of the spec steward:** if one entity both authors the spec
@@ -376,12 +376,16 @@ Transferable rules for the ring:
 - **RFC 8785 (JSON Canonicalization Scheme)** — for deterministic cross-impl
   signing (§8).
 - **RFC 9460 (SVCB/HTTPS records)** — the control-plane ranking primitive (§5).
+- **Web-rings** — the spiritual ancestor and the founding simile ("something
+  like a web-ring"): vetted membership circles of small sites. The collective
+  noun is now **wreath** — the same circle of membership, woven rather than
+  ordered; a full mesh has no next/prev (see WIRE-NOTES, 2026-08-03).
 - Emergency-comms channels of record (out of scope, know the boundary): WEA /
   IPAWS, NOAA weather radio.
 
 Whitespace: nobody has packaged "pooled reciprocal failover for low-sensitivity
 civic sites" (signed static fallback + health-checked/HTTPS-record failover + a
-vetted, diversity-selected ring) turnkey enough for a two-person county IT shop.
+vetted, diversity-selected wreath) turnkey enough for a two-person county IT shop.
 
 ---
 

@@ -1,4 +1,4 @@
-// Copyright 2026 The Resiliency Ring Authors
+// Copyright 2026 The Resiliency Wreath Authors
 // SPDX-License-Identifier: Apache-2.0
 
 package sim
@@ -8,8 +8,8 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/selfsimilar/resiliency-ring/internal/serve"
-	"github.com/selfsimilar/resiliency-ring/internal/wire"
+	"github.com/selfsimilar/resiliency-wreath/internal/serve"
+	"github.com/selfsimilar/resiliency-wreath/internal/wire"
 )
 
 func originHandler(dir string) http.Handler { return serve.OriginHandler(dir) }

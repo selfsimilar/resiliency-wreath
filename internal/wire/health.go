@@ -1,4 +1,4 @@
-// Copyright 2026 The Resiliency Ring Authors
+// Copyright 2026 The Resiliency Wreath Authors
 // SPDX-License-Identifier: Apache-2.0
 
 package wire
@@ -44,7 +44,7 @@ type HealthEntry struct {
 	Detail   string       `json:"detail,omitempty"`
 }
 
-// HealthReport is served at /.well-known/ring/v0/health. It is the
+// HealthReport is served at /.well-known/wreath/v0/health. It is the
 // reporting agent's own view; different agents legitimately see
 // different matrices (e.g. during a partition).
 type HealthReport struct {

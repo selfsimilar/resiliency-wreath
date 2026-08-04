@@ -1,9 +1,9 @@
-// Copyright 2026 The Resiliency Ring Authors
+// Copyright 2026 The Resiliency Wreath Authors
 // SPDX-License-Identifier: Apache-2.0
 
 // Package serve exposes an agent's HTTP surface (KICKOFF M2):
 //
-//   - relay endpoints under /.well-known/ring/v0/members/<id>/... so
+//   - relay endpoints under /.well-known/wreath/v0/members/<id>/... so
 //     peers can backfill from this agent;
 //   - the human-facing failover surface: /fallback/<id>/<path> and,
 //     when the Host header matches a member's fallback_host, the
@@ -28,9 +28,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/selfsimilar/resiliency-ring/internal/bundle"
-	"github.com/selfsimilar/resiliency-ring/internal/store"
-	"github.com/selfsimilar/resiliency-ring/internal/wire"
+	"github.com/selfsimilar/resiliency-wreath/internal/bundle"
+	"github.com/selfsimilar/resiliency-wreath/internal/store"
+	"github.com/selfsimilar/resiliency-wreath/internal/wire"
 )
 
 // Config wires the agent handler. Health may be nil until the prober
@@ -117,8 +117,8 @@ func (h *agentHandler) serveRelay(w http.ResponseWriter, r *http.Request, rest s
 			return
 		}
 		w.Header().Set("Content-Type", "application/json")
-		w.Header().Set("Ring-Member", id)
-		w.Header().Set("Ring-Version", fmt.Sprintf("%d", m.Version))
+		w.Header().Set("Wreath-Member", id)
+		w.Header().Set("Wreath-Version", fmt.Sprintf("%d", m.Version))
 		w.Write(data)
 	case strings.HasPrefix(tail, "blob/"):
 		hash := strings.TrimPrefix(tail, "blob/")
@@ -182,9 +182,9 @@ func (h *agentHandler) serveBundleFile(w http.ResponseWriter, r *http.Request, i
 		ctype = "application/octet-stream"
 	}
 	w.Header().Set("Content-Type", ctype)
-	w.Header().Set("Ring-Member", id)
-	w.Header().Set("Ring-Version", fmt.Sprintf("%d", m.Version))
-	w.Header().Set("Ring-Holder", h.cfg.SelfID)
+	w.Header().Set("Wreath-Member", id)
+	w.Header().Set("Wreath-Version", fmt.Sprintf("%d", m.Version))
+	w.Header().Set("Wreath-Holder", h.cfg.SelfID)
 	mod, _ := time.Parse(time.RFC3339, m.Timestamp)
 	http.ServeContent(w, r, entry.Path, mod, f)
 }
@@ -230,7 +230,7 @@ func (h *agentHandler) serveNotify(w http.ResponseWriter, r *http.Request) {
 func (h *agentHandler) serveIndex(w http.ResponseWriter, _ *http.Request) {
 	held := h.cfg.Store.Held()
 	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
-	fmt.Fprintf(w, "ring agent %s: holding %d bundles\n", h.cfg.SelfID, len(held))
+	fmt.Fprintf(w, "wreath agent %s: holding %d bundles\n", h.cfg.SelfID, len(held))
 	for _, id := range held {
 		fmt.Fprintf(w, "  /fallback/%s/ (v%d)\n", id, h.cfg.Store.Version(id))
 	}

@@ -1,4 +1,4 @@
-// Copyright 2026 The Resiliency Ring Authors
+// Copyright 2026 The Resiliency Wreath Authors
 // SPDX-License-Identifier: Apache-2.0
 
 package wire
@@ -25,7 +25,7 @@ const MaxSafeInteger = 1<<53 - 1
 // the bytes an Ed25519 signature covers.
 //
 // Deliberate subset: JCS number serialization is implemented only for
-// integers with absolute value <= 2^53-1. The ring wire formats contain
+// integers with absolute value <= 2^53-1. The wreath wire formats contain
 // no non-integer numbers; encountering one is a hard error, never a
 // silent approximation. String escaping, UTF-16 property ordering,
 // arrays, objects, and literals are full RFC 8785.
@@ -71,7 +71,7 @@ func appendCanonical(buf *bytes.Buffer, v any) error {
 	case json.Number:
 		s := x.String()
 		if strings.ContainsAny(s, ".eE") {
-			return fmt.Errorf("wire: non-integer JSON number %q (unsupported by ring JCS subset)", s)
+			return fmt.Errorf("wire: non-integer JSON number %q (unsupported by wreath JCS subset)", s)
 		}
 		n, err := strconv.ParseInt(s, 10, 64)
 		if err != nil {
